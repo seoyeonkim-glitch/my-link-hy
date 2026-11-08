@@ -1,22 +1,27 @@
-# my-link-hy (마이링크)
+# my-link-hy 🚀
 
-> 나만의 모든 링크를 한 곳에서 관리하고 공유하는 Next.js 기반 링크트리(Linktree) 클론 서비스
+> **Next.js 기반의 감각적이고 반응형인 개인 프로필 링크 웹 애플리케이션**
 
-## 시작하기
+## 📌 주요 기능
+- **개인 프로필 카드**: 프로필 이미지, 상태 표시, 자기소개 및 태그
+- **빠른 액션 버튼**: 이메일 연락하기 및 링크 연결
+- **반응형 디자인**: 모바일 및 데스크톱 완벽 지원
+
+## 🛠️ 시작하기 (Development)
+
+개발 서버 실행:
 
 ```bash
-npm install
 npm run dev
+# 또는
+yarn dev
+# 또는
+pnpm dev
+# 또는
+bun dev
 ```
 
-브라우저에서 [http://localhost:3000](http://localhost:3000)으로 접속하여 결과를 확인할 수 있습니다.
+[http://localhost:3000](http://localhost:3000) 접속하여 결과를 확인하실 수 있습니다.
 
-## 주요 기능
-
-- **로컬스토리지 기반 영속성**: 별도 서버/DB 없이 브라우저 로컬스토리지에 프로필과 링크 데이터 영구 보존
-- **모바일 퍼스트 반응형 디자인**: 토스 디자인 시스템(TDS) 스타일의 깔끔한 카드 레이아웃
-- **원클릭 연락처 인터랙션**: 이메일 원클릭 클립보드 복사 및 외부 링크 새 탭 이동
-
-## 라이선스 (License)
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 📄 라이선스
+This project is [MIT](LICENSE) licensed.
