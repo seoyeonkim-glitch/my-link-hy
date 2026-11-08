@@ -4,88 +4,111 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-[calc(100vh-160px)] flex flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md bg-white border border-gray-100 rounded-3xl p-8 shadow-sm flex flex-col items-center text-center">
-        {/* 프로필 이미지 / 아바타 */}
-        <div className="relative mb-5">
-          <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-white shadow-md shadow-blue-100 bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white text-3xl font-bold">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://github.com/seoyeonkim-glitch.png"
-              alt="김서연 프로필"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
-            />
+    <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-[radial-gradient(ellipse_at_center,_#201744_0%,_#110c26_60%,_#090615_100%)]">
+      {/* 프로필 카드 */}
+      <div className="w-full max-w-[390px] bg-[#181236]/80 backdrop-blur-xl border border-purple-400/15 rounded-[28px] p-8 shadow-[0_20px_50px_rgba(10,5,30,0.8)] flex flex-col items-center text-center">
+        {/* 아바타 영역 */}
+        <div className="relative mx-auto mb-4">
+          <div className="w-28 h-28 rounded-full p-[3px] bg-gradient-to-tr from-cyan-400 via-sky-400 to-indigo-500 shadow-[0_0_20px_rgba(56,189,248,0.25)]">
+            <div className="w-full h-full rounded-full overflow-hidden bg-[#150f2e] flex items-center justify-center text-white text-3xl font-bold">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://github.com/seoyeonkim-glitch.png"
+                alt="김서연 프로필"
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            </div>
           </div>
-          <span className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full" title="Active" />
+          {/* 상태 표시 그린 닷 */}
+          <span
+            className="absolute bottom-1 right-2 w-4 h-4 bg-emerald-400 rounded-full border-2 border-[#181236] shadow-sm"
+            title="온라인"
+          />
         </div>
 
-        {/* 이름 및 핸들 */}
-        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+        {/* 이름 */}
+        <h1 className="text-2xl font-bold text-white tracking-tight mt-1">
           김서연
         </h1>
-        <p className="text-xs text-gray-400 mt-0.5">@seoyeonkim-glitch</p>
-
-        {/* 직무 뱃지 */}
-        <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-50 rounded-full border border-blue-100">
-          <span>💻</span>
-          <span>웹 개발자</span>
-        </div>
 
         {/* 소개글 */}
-        <p className="mt-4 text-gray-600 text-sm leading-relaxed max-w-sm">
-          안녕하세요! 사용자 경험과 깨끗한 코드를 지향하는 웹 개발자입니다.
-          문제를 정의하고 해결하는 과정을 즐깁니다.
+        <p className="mt-2 text-sm text-purple-200/70 font-normal leading-relaxed">
+          안녕하세요! 바이브 코딩을 배우고 있는 대학생입니다.
         </p>
 
-        {/* 태그 / 관심 분야 */}
-        <div className="mt-5 flex flex-wrap justify-center gap-2">
-          <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
-            💻 웹 개발자
+        {/* 뱃지 태그 */}
+        <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#271e50]/90 text-[#b5a3ff] border border-purple-500/20 shadow-xs flex items-center gap-1.5">
+            <span>💻</span>
+            <span>바이브 코딩</span>
           </span>
-          <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
-            ⚡ Next.js & React
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#271e50]/90 text-[#b5a3ff] border border-purple-500/20 shadow-xs flex items-center gap-1.5">
+            <span>🎓</span>
+            <span>대학생</span>
           </span>
-          <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
-            🌱 지속 가능한 성장
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#271e50]/90 text-[#b5a3ff] border border-purple-500/20 shadow-xs flex items-center gap-1.5">
+            <span>🚀</span>
+            <span>성장 중</span>
           </span>
         </div>
 
-        {/* 구분선 */}
-        <div className="w-full border-t border-gray-100 my-6" />
+        {/* 하단 버튼 2개 */}
+        <div className="grid grid-cols-2 gap-3 mt-6 w-full">
+          <Link
+            href="mailto:seoyeonkim@hanyang.ac.kr"
+            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-[0_4px_16px_rgba(79,70,229,0.35)] transition-all active:scale-[0.98]"
+          >
+            <svg
+              className="w-4 h-4 fill-current"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+            </svg>
+            <span>연락하기</span>
+          </Link>
 
-        {/* 링크 목록 */}
-        <div className="w-full flex flex-col gap-2.5">
           <Link
             href="https://github.com/seoyeonkim-glitch"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all text-sm font-medium text-gray-800 group shadow-xs"
+            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#292055]/80 hover:bg-[#33286b] text-gray-200 hover:text-white border border-purple-400/20 font-semibold text-sm transition-all active:scale-[0.98]"
           >
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 fill-current text-gray-700" viewBox="0 0 24 24">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-              <span>GitHub</span>
-            </div>
-            <span className="text-gray-400 group-hover:translate-x-0.5 transition-transform text-xs">↗</span>
-          </Link>
-
-          <Link
-            href="mailto:seoyeonkim@hanyang.ac.kr"
-            className="flex items-center justify-between w-full px-4 py-3 rounded-xl border border-gray-200 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all text-sm font-medium text-gray-800 group shadow-xs"
-          >
-            <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              <span>Contact (Email)</span>
-            </div>
-            <span className="text-gray-400 group-hover:translate-x-0.5 transition-transform text-xs">↗</span>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+              />
+            </svg>
+            <span>링크</span>
           </Link>
         </div>
+      </div>
+
+      {/* 좌측 하단 Next.js 워터마크 아이콘 */}
+      <div className="fixed bottom-6 left-6 w-8 h-8 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white backdrop-blur-md shadow-sm">
+        <svg className="w-4 h-4 fill-current" viewBox="0 0 180 180">
+          <mask height="180" id="mask0" maskUnits="userSpaceOnUse" width="180" x="0" y="0" style={{ maskType: "alpha" }}>
+            <circle cx="90" cy="90" fill="black" r="90" />
+          </mask>
+          <g mask="url(#mask0)">
+            <circle cx="90" cy="90" data-circle="true" fill="black" r="90" />
+            <path d="M149.508 157.52L69.142 54H54V125.97H66.1136V69.3836L139.999 164.845C143.333 162.614 146.509 160.165 149.508 157.52Z" fill="white" />
+            <rect fill="white" height="72" width="12" x="115" y="54" />
+          </g>
+        </svg>
       </div>
     </div>
   );
