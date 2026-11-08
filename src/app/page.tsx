@@ -4,65 +4,210 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden bg-[radial-gradient(ellipse_at_center,_#201744_0%,_#110c26_60%,_#090615_100%)]">
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        position: "relative",
+        overflow: "hidden",
+        background: "radial-gradient(circle at 50% 40%, #261c52 0%, #130d2a 60%, #090615 100%)",
+        color: "#ffffff",
+      }}
+    >
       {/* 프로필 카드 */}
-      <div className="w-full max-w-[390px] bg-[#181236]/80 backdrop-blur-xl border border-purple-400/15 rounded-[28px] p-8 shadow-[0_20px_50px_rgba(10,5,30,0.8)] flex flex-col items-center text-center">
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "380px",
+          background: "rgba(25, 20, 52, 0.78)",
+          backdropFilter: "blur(24px)",
+          WebkitBackdropFilter: "blur(24px)",
+          border: "1px solid rgba(168, 140, 255, 0.2)",
+          borderRadius: "28px",
+          padding: "36px 28px",
+          boxShadow: "0 24px 60px rgba(5, 2, 16, 0.85), 0 0 30px rgba(139, 92, 246, 0.1)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+        }}
+      >
         {/* 아바타 영역 */}
-        <div className="relative mx-auto mb-4">
-          <div className="w-28 h-28 rounded-full p-[3px] bg-gradient-to-tr from-cyan-400 via-sky-400 to-indigo-500 shadow-[0_0_20px_rgba(56,189,248,0.25)]">
-            <div className="w-full h-full rounded-full overflow-hidden bg-[#150f2e] flex items-center justify-center text-white text-3xl font-bold">
+        <div style={{ position: "relative", marginBottom: "16px" }}>
+          {/* 네온 그라데이션 링 */}
+          <div
+            style={{
+              width: "112px",
+              height: "112px",
+              borderRadius: "9999px",
+              padding: "3px",
+              background: "linear-gradient(135deg, #38bdf8 0%, #6366f1 50%, #a855f7 100%)",
+              boxShadow: "0 0 24px rgba(56, 189, 248, 0.35)",
+            }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: "100%",
+                borderRadius: "9999px",
+                overflow: "hidden",
+                background: "linear-gradient(180deg, #38bdf8 0%, #1e1b4b 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="https://github.com/seoyeonkim-glitch.png"
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&h=300&fit=crop&crop=faces"
                 alt="김서연 프로필"
-                className="w-full h-full object-cover"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
                 onError={(e) => {
-                  e.currentTarget.style.display = "none";
+                  e.currentTarget.src = "https://github.com/seoyeonkim-glitch.png";
                 }}
               />
             </div>
           </div>
           {/* 상태 표시 그린 닷 */}
           <span
-            className="absolute bottom-1 right-2 w-4 h-4 bg-emerald-400 rounded-full border-2 border-[#181236] shadow-sm"
+            style={{
+              position: "absolute",
+              bottom: "4px",
+              right: "6px",
+              width: "16px",
+              height: "16px",
+              backgroundColor: "#10b981",
+              borderRadius: "9999px",
+              border: "2.5px solid #191434",
+              boxShadow: "0 0 8px rgba(16, 185, 129, 0.7)",
+            }}
             title="온라인"
           />
         </div>
 
         {/* 이름 */}
-        <h1 className="text-2xl font-bold text-white tracking-tight mt-1">
+        <h1
+          style={{
+            fontSize: "24px",
+            fontWeight: 700,
+            color: "#ffffff",
+            letterSpacing: "-0.5px",
+            margin: "0 0 6px 0",
+          }}
+        >
           김서연
         </h1>
 
         {/* 소개글 */}
-        <p className="mt-2 text-sm text-purple-200/70 font-normal leading-relaxed">
+        <p
+          style={{
+            fontSize: "14px",
+            color: "rgba(224, 215, 255, 0.75)",
+            fontWeight: 400,
+            lineHeight: "1.5",
+            margin: "0 0 16px 0",
+          }}
+        >
           안녕하세요! 바이브 코딩을 배우고 있는 대학생입니다.
         </p>
 
         {/* 뱃지 태그 */}
-        <div className="flex items-center justify-center gap-2 mt-4 flex-wrap">
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#271e50]/90 text-[#b5a3ff] border border-purple-500/20 shadow-xs flex items-center gap-1.5">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "8px",
+            flexWrap: "wrap",
+            marginBottom: "24px",
+          }}
+        >
+          <span
+            style={{
+              padding: "5px 14px",
+              borderRadius: "9999px",
+              fontSize: "12px",
+              fontWeight: 500,
+              background: "rgba(42, 33, 85, 0.8)",
+              color: "#c4b5fd",
+              border: "1px solid rgba(168, 85, 247, 0.25)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
             <span>💻</span>
             <span>바이브 코딩</span>
           </span>
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#271e50]/90 text-[#b5a3ff] border border-purple-500/20 shadow-xs flex items-center gap-1.5">
+          <span
+            style={{
+              padding: "5px 14px",
+              borderRadius: "9999px",
+              fontSize: "12px",
+              fontWeight: 500,
+              background: "rgba(42, 33, 85, 0.8)",
+              color: "#c4b5fd",
+              border: "1px solid rgba(168, 85, 247, 0.25)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
             <span>🎓</span>
             <span>대학생</span>
           </span>
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-[#271e50]/90 text-[#b5a3ff] border border-purple-500/20 shadow-xs flex items-center gap-1.5">
+          <span
+            style={{
+              padding: "5px 14px",
+              borderRadius: "9999px",
+              fontSize: "12px",
+              fontWeight: 500,
+              background: "rgba(42, 33, 85, 0.8)",
+              color: "#c4b5fd",
+              border: "1px solid rgba(168, 85, 247, 0.25)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
             <span>🚀</span>
             <span>성장 중</span>
           </span>
         </div>
 
         {/* 하단 버튼 2개 */}
-        <div className="grid grid-cols-2 gap-3 mt-6 w-full">
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "12px",
+            width: "100%",
+          }}
+        >
           <Link
             href="mailto:seoyeonkim@hanyang.ac.kr"
-            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-[0_4px_16px_rgba(79,70,229,0.35)] transition-all active:scale-[0.98]"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "13px 16px",
+              borderRadius: "14px",
+              background: "linear-gradient(135deg, #3b82f6 0%, #6366f1 100%)",
+              color: "#ffffff",
+              fontWeight: 600,
+              fontSize: "14px",
+              textDecoration: "none",
+              boxShadow: "0 6px 20px rgba(99, 102, 241, 0.4)",
+              transition: "transform 0.15s ease, opacity 0.15s ease",
+            }}
           >
             <svg
-              className="w-4 h-4 fill-current"
+              style={{ width: "16px", height: "16px", fill: "currentColor" }}
               viewBox="0 0 20 20"
               xmlns="http://www.w3.org/2000/svg"
             >
@@ -76,10 +221,24 @@ export default function Home() {
             href="https://github.com/seoyeonkim-glitch"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#292055]/80 hover:bg-[#33286b] text-gray-200 hover:text-white border border-purple-400/20 font-semibold text-sm transition-all active:scale-[0.98]"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "13px 16px",
+              borderRadius: "14px",
+              background: "rgba(45, 36, 88, 0.75)",
+              color: "#f1f5f9",
+              border: "1px solid rgba(168, 85, 247, 0.3)",
+              fontWeight: 600,
+              fontSize: "14px",
+              textDecoration: "none",
+              transition: "background 0.15s ease, transform 0.15s ease",
+            }}
           >
             <svg
-              className="w-4 h-4"
+              style={{ width: "16px", height: "16px" }}
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -97,9 +256,26 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 좌측 하단 Next.js 워터마크 아이콘 */}
-      <div className="fixed bottom-6 left-6 w-8 h-8 rounded-full bg-black/60 border border-white/10 flex items-center justify-center text-white backdrop-blur-md shadow-sm">
-        <svg className="w-4 h-4 fill-current" viewBox="0 0 180 180">
+      {/* 좌측 하단 Next.js 로고 워터마크 */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: "24px",
+          left: "24px",
+          width: "32px",
+          height: "32px",
+          borderRadius: "9999px",
+          background: "rgba(22, 17, 46, 0.85)",
+          border: "1px solid rgba(255, 255, 255, 0.12)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "#ffffff",
+          backdropFilter: "blur(12px)",
+          boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+        }}
+      >
+        <svg style={{ width: "16px", height: "16px", fill: "currentColor" }} viewBox="0 0 180 180">
           <mask height="180" id="mask0" maskUnits="userSpaceOnUse" width="180" x="0" y="0" style={{ maskType: "alpha" }}>
             <circle cx="90" cy="90" fill="black" r="90" />
           </mask>
