@@ -30,25 +30,26 @@ export default function Home() {
 
         {/* 직무 뱃지 */}
         <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 text-xs font-semibold text-blue-700 bg-blue-50 rounded-full border border-blue-100">
-          <span>🎓</span>
-          <span>대학생 · Vibe Coding</span>
+          <span>💻</span>
+          <span>웹 개발자</span>
         </div>
 
         {/* 소개글 */}
         <p className="mt-4 text-gray-600 text-sm leading-relaxed max-w-sm">
-          안녕하세요! 바이브 코딩을 배우고 있는 대학생입니다.
+          안녕하세요! 사용자 경험과 깨끗한 코드를 지향하는 웹 개발자입니다.
+          문제를 정의하고 해결하는 과정을 즐깁니다.
         </p>
 
         {/* 태그 / 관심 분야 */}
         <div className="mt-5 flex flex-wrap justify-center gap-2">
           <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
-            💻 바이브 코딩
+            💻 웹 개발자
           </span>
           <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
-            🎓 대학생
+            ⚡ Next.js & React
           </span>
           <span className="px-3 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-lg border border-blue-100">
-            🌱 성장 중
+            🌱 지속 가능한 성장
           </span>
         </div>
 
