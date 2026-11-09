@@ -85,7 +85,7 @@
 | **`ProfileActions`** | `@/components/profile/ProfileActions.tsx` | • `Button`(`iconCircle`)을 조합하여 소셜 바로가기 및 이메일 복사 원형 아이콘 바 렌더링 |
 | **`LinkCardItem`** | `@/components/profile/LinkCardItem.tsx` | • `CardListRow`, `CardTitle`, `CardDescription`, `Badge`를 조합하여 개별 링크 카드 렌더링 |
 | **`LinkListSection`** | `@/components/profile/LinkListSection.tsx` | • 카테고리별(`🚀 주요 프로젝트`, `📚 기술 & 블로그`) 활성 링크 카드 목록 렌더링 |
-| **`AddLinkDialog`** | `@/components/profile/AddLinkDialog.tsx` | • `Dialog`, `Input`, `Label`, `Badge`, `Button`을 조합하여 로컬 상태(및 `localStorage`)에 새 링크를 추가하는 모달 폼 |
+| **`AddLinkDialog`** | `@/components/profile/AddLinkDialog.tsx` | • `Dialog`, `Input`, `Label`, `Badge`, `Button` 및 **Zod + React Hook Form**(`zodResolver`)을 조합하여 입력값 유효성 검증 후 로컬 상태에 새 링크를 추가하는 모달 폼 |
 
 ---
 
