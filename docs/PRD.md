@@ -1,11 +1,11 @@
 # [PRD] 마이링크 (MyLink) 제품 요구사항 정의서
 
 - **제품명**: 마이링크 (MyLink)
-- **문서 버전**: v1.4.0 (shadcn/ui 기반 디자인 시스템 표준화 반영)
+- **문서 버전**: v1.5.0 (shadcn/ui 기반 토스 디자인 시스템(TDS) 통합 명세)
 - **작성일자**: 2026-11-09
 - **문서 상태**: 확정 (Approved for Live Demo)
 - **핵심 목표**: **브라우저 로컬스토리지(LocalStorage)를 활용한 프로필 페이지 단일 뷰 완성**
-- **디자인 시스템**: **[shadcn/ui](https://ui.shadcn.com) + Tailwind CSS v4 기반 컴포넌트 아키텍처**
+- **디자인 시스템**: **shadcn/ui 컴포넌트 아키텍처 × 토스 디자인 시스템(TDS, `DESIGN.md`) 통합 표준**
 
 ---
 
@@ -20,28 +20,57 @@
 
 | 구분 | 포함 여부 | 주요 내용 |
 |---|:---:|---|
-| **현재 시연 범위 (In-Scope)** | **✅ 필수** | • 브라우저 `localStorage` 기반 프로필 & 링크 데이터 읽기/쓰기<br>• 최초 방문 시 기본 샘플 데이터 자동 초기화 (Auto-seeding)<br>• Next.js App Router 기반의 SSR Hydration-safe 렌더링<br>• **shadcn/ui 기반 재사용 컴포넌트 구조 (`Button`, `Card`, `Badge` 등)**<br>• 모바일 반응형 프로필 카드 UI (Tailwind CSS v4 스타일링)<br>• 이메일 클립보드 복사 피커 & 외부 링크 새 탭 이동 인터랙션 |
+| **현재 시연 범위 (In-Scope)** | **✅ 필수** | • 브라우저 `localStorage` 기반 프로필 & 링크 데이터 읽기/쓰기<br>• 최초 방문 시 기본 샘플 데이터 자동 초기화 (Auto-seeding)<br>• Next.js App Router 기반의 SSR Hydration-safe 렌더링<br>• **shadcn/ui 기반 재사용 컴포넌트 구조 (`Button`, `Card`, `Badge`, `Separator` 등)**<br>• **토스 디자인 시스템(TDS) 스타일 가이드라인 (`DESIGN.md`) 100% 준수**<br>• 모바일 반응형 프로필 카드 UI (Tailwind CSS v4 스타일링)<br>• 이메일 클립보드 복사 피커 & 외부 링크 새 탭 이동 인터랙션 |
 | **추후 단계 범위 (Deferred / Out-of-Scope)** | **⏳ 차기 단계** | • 관리자 대시보드 편집기 (링크 추가/수정 폼, 드래그 앤 드롭 등)<br>• 방문자 및 링크 클릭 통계(Analytics) 분석 지표<br>• 테마 실시간 변경 커스텀 피커<br>• JSON 데이터 내보내기/가져오기 백업 모듈 |
 
 ---
 
-## 2. 디자인 시스템 및 컴포넌트 아키텍처 (shadcn/ui Standard)
+## 2. 디자인 시스템: shadcn/ui × 토스 디자인 시스템(TDS) 통합 명세
 
-앞으로의 모든 UI 컴포넌트 개발 및 디자인 확장은 **[shadcn/ui](https://ui.shadcn.com)**를 공식 표준으로 채택하여 진행합니다.
+모든 UI 컴포넌트는 **shadcn/ui의 표준 프리미티브 컴포넌트 아키텍처**를 기반으로 하되, 비주얼과 인터랙션은 **토스 디자인 시스템(TDS, `DESIGN.md`)의 핵심 토큰 및 규칙**을 엄격히 적용하여 구축합니다.
 
-### 2.1 디자인 원칙 (Design Principles)
-1. **재사용 컴포넌트 중심**: 모든 인터랙티브 UI는 `@/components/ui/` 하위의 shadcn/ui 표준 프리미티브를 조립하여 구성.
-2. **Tailwind CSS v4 기반 통일**: 하드코딩된 인라인 스타일 대신 Tailwind CSS v4 토큰과 `@theme` 변수 기반 스타일링 적용.
-3. **일관된 클래스 병합**: `src/lib/utils.ts`의 `cn(clsx + twMerge)` 유틸리티를 사용하여 스타일 충돌 방지 및 유연한 클래스 확장 보장.
-4. **아이콘 표준화**: `lucide-react`를 공식 아이콘 라이브러리로 통일.
+### 2.1 TDS 핵심 디자인 원칙 (TDS Principles)
+1. **단일 강조색 정책 (Single Blue Accent)**:
+   - 강조색은 **`blue-500` (`#3182F6`)** 단 하나만 사용합니다.
+   - 메인 화면당 Primary CTA(핵심 행동 유도 버튼)는 **오직 1개**로 제한합니다.
+2. **평면적이고 정갈한 표면 (Flat & Clean Surface)**:
+   - 화려한 그라디언트나 무거운 드롭섀도우를 배제합니다.
+   - 페이지 배경(`grey-100`), 카드 컨테이너(`white`), 구분선(`grey-200`)의 담백한 면 분할을 유지합니다.
+3. **공격적이고 부드러운 곡률 (Radical Border Radius)**:
+   - 카드 컨테이너: **24px** (`rounded-[24px]`)
+   - 주요 버튼 (L/Primary/Secondary): **14px** (`rounded-[14px]`)
+   - 칩 뱃지 및 아바타: **999px** (`rounded-full`)
+4. **해요체 카피라이팅 & 명확한 동사형 액션**:
+   - 모든 사용자 문구는 신뢰감과 친근감을 전달하는 **"해요체"**를 사용합니다. (예: `~개발자예요`, `친구와 동료에게 전달해요`)
+   - 버튼 문구는 **"일어날 일을 직접 말한다"**는 원칙에 따라 명확한 동사로 표현합니다. (예: `이메일로 연락하기`, `GitHub 방문하기`)
+5. **표준 list-row 패턴**:
+   - 각 링크 아이템은 TDS의 `list-row` 표준 규격(좌측 전용 아이콘 뱃지 + 중앙 타이틀/디스크립션 + 우측 chevron 아이콘 + 터치 시 부드러운 반응)을 따릅니다.
 
-### 2.2 핵심 shadcn/ui 컴포넌트 매핑
-| 컴포넌트 | 경로 | 용도 |
+### 2.2 TDS 핵심 디자인 토큰 (`DESIGN.md` 기준)
+
+| 구분 | 토큰명 | 값 / 규격 | 용도 및 규칙 |
+|---|---|---|---|
+| **색상 (Color)** | `blue-500` | `#3182F6` | **Primary CTA**, 핵심 액센트 (화면당 1개) |
+| | `blue-50` | `#E8F3FF` | Brand Weak 배경, 선택된 칩 뱃지 배경 |
+| | `grey-900` | `#191F28` | Primary 텍스트 (이름, 카드 타이틀) |
+| | `grey-700` | `#4E5968` | Secondary 텍스트 (소개글, 링크 설명) |
+| | `grey-500` | `#8B95A1` | 핸들명(`@handle`), 섹션 라벨, 부가 정보 |
+| | `grey-200` | `#E5E8EB` | 표준 구분선(Divider), 테두리 |
+| | `grey-100` | `#F2F4F6` | Secondary 표면, 기본 칩 배경, 페이지 배경 |
+| | `white` | `#FFFFFF` | 메인 프로필 카드 배경 |
+| | `green-500` | `#34C759` | 실시간 온라인 상태 점(dot) |
+| **타이포그래피** | Pretendard | Variable | TPS 대체 서체, 자간 `-0.005em ~ -0.015em` |
+| **라운드** | Card / Button | `24px` / `14px` | 극대화된 모바일 친화 라운드 |
+
+### 2.3 shadcn/ui 프리미티브 컴포넌트 커스텀 매핑
+
+| 컴포넌트 | 파일 경로 | TDS 스타일 커스텀 상세 |
 |---|---|---|
-| **`Button`** | `@/components/ui/button.tsx` | 주요 액션 버튼(이메일 복사, 프로필 바로가기 등), variant 및 size 활용 |
-| **`Card`** | `@/components/ui/card.tsx` | 프로필 메인 컨테이너 및 링크 아이템 카드 래퍼 |
-| **`Badge`** | `@/components/ui/badge.tsx` | 프로필 헤더 관심사/역할 태그 칩 및 상태 뱃지 |
-| **`Toast`** | `@/components/ui/toast.tsx` | 이메일 클립보드 복사 완료 피드백 알림 |
+| **`Button`** | `@/components/ui/button.tsx` | • **default**: `bg-[#3182F6] hover:bg-[#1B64DA] text-white rounded-[14px] h-[52px] font-bold text-[17px] active:scale-[0.98]`<br>• **secondary**: `bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] rounded-[14px] h-[52px] font-bold text-[17px] active:scale-[0.98]` |
+| **`Card`** | `@/components/ui/card.tsx` | • **컨테이너**: `bg-white rounded-[24px] border-none shadow-none overflow-hidden`<br>• **list-row 항목**: `hover:bg-[#F2F4F6] rounded-[16px] transition-colors p-3.5 flex items-center gap-[14px]` |
+| **`Badge`** | `@/components/ui/badge.tsx` | • **default**: `bg-[#F2F4F6] text-[#4E5968] rounded-full h-[30px] px-3 font-semibold text-[13px]`<br>• **brand**: `bg-[#E8F3FF] text-[#3182F6] rounded-full h-[30px] px-3 font-semibold text-[13px]` |
+| **`Separator`** | `@/components/ui/separator.tsx` | • TDS 표준 구분선: `bg-[#E5E8EB] h-[1px] w-full my-0` |
+| **`Toast`** | `@/components/ui/toast.tsx` | • 이메일 복사 시 피드백: "이메일 복사됐어요 ✓" 토스트 알림 |
 
 ---
 
@@ -55,22 +84,22 @@
 3. **SSR Hydration Mismatch 방지**:
    - Next.js 서버 렌더링 시점과 브라우저 마운트 시점의 불일치를 방지하기 위해 마운트 완료(`isMounted`) 후 안전하게 로컬스토리지 값 동기화.
 
-### 3.2 [FR-02] 프로필 페이지 뷰 (Profile View Components)
+### 3.2 [FR-02] TDS 프로필 페이지 뷰 (Profile View Components)
 1. **프로필 헤더 영역**:
-   - 아바타 이미지 (원형 마스크 및 fallback 처리)
-   - 온라인 상태 표시 인디케이터
-   - 사용자 이름 (`displayName`) 및 핸들 (`@username`)
-   - 소개 문구 (`bio`)
-   - **shadcn `Badge`** 기반 관심사/역할 태그 칩 목록
-2. **액션 버튼 영역**:
-   - **shadcn `Button`** 기반 이메일 복사하기 (클릭 시 클립보드 복사 + 피드백 토스트 전환)
-   - **shadcn `Button`** 기반 소셜 프로필(GitHub 등) 바로가기 버튼
+   - 아바타 이미지 (원형 마스크 80px 및 fallback 처리)
+   - 온라인 상태 표시 인디케이터 (`green-500`, 14px 원형 + 2.5px 흰색 보더)
+   - 사용자 이름 (`displayName`, TDS `display` 규격 22px/Bold) 및 핸들 (`@username`, 13px/Medium)
+   - 소개 문구 (`bio`, TDS `body` 규격 15px/Regular, 해요체)
+   - **shadcn `Badge` (TDS Chip)** 기반 관심사/역할 태그 칩 목록
+2. **액션 버튼 영역 (TDS 규격)**:
+   - **shadcn `Button` (default variant - Primary CTA)**: 이메일 복사하기 (클릭 시 클립보드 복사 + "이메일 복사됐어요 ✓" 피드백)
+   - **shadcn `Button` (secondary variant)**: 소셜 프로필(`GitHub 방문하기`) 새 탭 바로가기
 3. **링크 목록 영역 (`list-row`)**:
    - **shadcn `Card`** 기반으로 활성화(`isActive: true`)된 링크들을 순서대로 출력
-   - 각 링크 카드: 좌측 `lucide-react` 전용 아이콘 + 제목 + 서브 설명 + 우측 화살표
+   - 각 링크 카드: 좌측 `lucide-react` 전용 배경 아이콘 + 중앙 제목/설명 + 우측 Chevron 화살표
    - 링크 클릭 시 새 탭(`target="_blank"`)으로 안전하게 오픈
 4. **푸터 영역**:
-   - 저작권 문구 및 로컬스토리지 연동 안내 표기
+   - TDS `caption` 스타일의 저작권 문구 및 로컬스토리지 연동 표기
 
 ---
 
@@ -91,7 +120,7 @@ export interface LinkItem {
 export interface MyLinkProfileData {
   username: string;       // 예: "seoyeonkim-glitch"
   displayName: string;    // 예: "김서연"
-  bio: string;            // 소개 문구
+  bio: string;            // 소개 문구 (해요체)
   avatarUrl: string;      // 아바타 이미지 주소
   tags: string[];         // 뱃지 태그 배열
   socialLinks: {
@@ -112,9 +141,9 @@ export interface MyLinkProfileData {
 ```mermaid
 flowchart LR
     subgraph VisitorPerspective ["1. 방문자(Visitor) 관점"]
-        V1["URL 접속<br>(인스타/이메일/깃허브)"] --> V2["프로필 & 정체성 확인<br>(아바타/소개/뱃지)"]
-        V2 --> V3["링크 탐색 & 새 탭 오픈"]
-        V2 --> V4["이메일 복사 인터랙션"]
+        V1["URL 접속<br>(인스타/이메일/깃허브)"] --> V2["TDS 프로필 & 정체성 확인<br>(아바타/해요체 소개/칩)"]
+        V2 --> V3["TDS list-row 링크 탐색 & 새 탭 오픈"]
+        V2 --> V4["TDS Primary 버튼 이메일 복사"]
     end
 
     subgraph OwnerPerspective ["2. 소유자(Owner) 관점"]
@@ -128,26 +157,26 @@ flowchart LR
 ---
 
 ### 5.1 관점 1: 방문자 (Visitor) 시나리오
-> **"다른 사람의 마이링크 페이지를 방문하여 탐색하고 소통하는 과정"**
+> **"다른 사람의 마이링크 페이지를 방문하여 정갈한 TDS UI를 통해 탐색하고 소통하는 과정"**
 
-- **액터(Actor)**: 인스타그램 바이오, 채용 서류, GitHub 프로필 링크 등을 통해 마이링크를 방문한 외부 사용자 (채용 담당자, 팬, 동료 등)
-- **주요 목표**: 링크 소유자가 누구인지 직관적으로 파악하고, 원하는 외부 링크로 빠르고 안전하게 이동하며, 연락처를 손쉽게 확보한다.
+- **액터(Actor)**: 인스타그램 바이오, 채용 서류, GitHub 프로필 링크 등을 통해 마이링크를 방문한 외부 사용자
+- **주요 목표**: 링크 소유자가 누구인지 3초 만에 직관적으로 파악하고, 단 하나의 Primary CTA와 TDS list-row를 통해 방해 없이 소통한다.
 
-| 단계 | 행동 및 인터랙션 | 시스템 반응 및 기대 효과 |
+| 단계 | 행동 및 인터랙션 | 시스템 반응 및 기대 효과 (TDS 기준) |
 |:---:|---|---|
-| **Step 1: 페이지 진입 및 정체성 파악** | 사용자가 모바일/데스크톱 브라우저로 마이링크 URL에 접속한다. | • 깔끔한 shadcn/ui 기반 프로필 카드 즉각 로드<br>• 원형 아바타, 녹색 'ONLINE' 뱃지, 이름(`김서연`), 한 줄 소개, shadcn 뱃지 칩을 통해 3초 안에 소유자 정체성 파악 |
-| **Step 2: 주요 링크 탐색** | 프로필 하단에 정렬된 링크 카드 목록을 위에서 아래로 스캔한다. | • 각 링크마다 의미에 맞는 전용 Lucide 아이콘(GitHub, 메일, 웹 등)과 상세 설명이 표기되어 클릭 전 목적지 명확 인지 |
-| **Step 3: 외부 링크 이동 (새 탭)** | 관심 있는 `GitHub 저장소` 또는 `포트폴리오` 링크 카드를 터치/클릭한다. | • `target="_blank"` 및 `rel="noopener noreferrer"`로 새 브라우저 탭에서 대상 페이지 오픈<br>• 원래 마이링크 페이지를 유지하여 다른 링크도 이어서 탐색 가능 |
-| **Step 4: 연락처 복사 (원클릭)** | 협업 문의를 위해 상단의 `[이메일로 연락하기]` shadcn 버튼을 클릭한다. | • 클립보드에 이메일 자동 복사<br>• 버튼 문구가 `이메일 복사됐어요 ✓`로 즉시 변경되어 성공 피드백 전달 후 2초 뒤 복귀 |
-| **Step 5: 모바일 쾌적성 경험** | 스마트폰(iPhone SE, 갤럭시 등 320~375px 소형 화면)에서 한 손으로 조작한다. | • 긴 링크 제목이나 이메일도 가로 스크롤 없이 말줄임(`ellipsis`)으로 깔끔히 정돈<br>• 모든 버튼이 최소 44px 이상의 터치 타깃을 확보하여 편안하게 이용 |
+| **Step 1: 페이지 진입 및 정체성 파악** | 사용자가 모바일/데스크톱 브라우저로 마이링크 URL에 접속한다. | • 정갈한 TDS 화이트 카드(`bg-white rounded-[24px]`) 즉각 로드<br>• 원형 아바타, 초록색 온라인 점, 이름(`김서연`), 친근한 해요체 바이오, TDS 칩 뱃지를 통해 단숨에 소유자 정체성 확인 |
+| **Step 2: 주요 링크 탐색** | 프로필 하단에 정렬된 링크 카드 목록을 위에서 아래로 스캔한다. | • TDS `list-row` 규격 적용: 좌측 컬러풀한 아이콘 박스 + 볼드 타이틀 + 서브 설명 + 우측 화살표로 명확한 목적지 인지 |
+| **Step 3: 외부 링크 이동 (새 탭)** | 관심 있는 `GitHub 저장소` 또는 `포트폴리오` 링크를 터치/클릭한다. | • `target="_blank"` 및 `rel="noopener noreferrer"`로 새 브라우저 탭에서 대상 페이지 오픈<br>• 원래 마이링크 탭 유지 |
+| **Step 4: 연락처 복사 (원클릭 Primary CTA)** | 화면 내 단 하나의 Primary CTA 버튼인 `[이메일로 연락하기]`를 클릭한다. | • 클립보드에 이메일 자동 복사<br>• 버튼 문구가 `이메일 복사됐어요 ✓`로 즉시 변경되어 2초간 확실한 피드백 제공 |
+| **Step 5: 모바일 쾌적성 경험** | 스마트폰(iPhone SE, 갤럭시 등 320~390px 폭)에서 한 손으로 조작한다. | • 24px 패딩과 최소 52px 높이의 버튼 터치 타깃으로 터치 미스 방지 및 쾌적한 UX 제공 |
 
 ---
 
 ### 5.2 관점 2: 소유자 (Owner) 시나리오
-> **"자신의 마이링크를 직접 관리하는 과정 (링크 추가, 수정, 삭제, 보존)"**
+> **"자신의 마이링크를 직접 관리하는 과정 (링크 추가, 수정, 삭제, 영구 보존)"**
 
 - **액터(Actor)**: 자신의 포트폴리오, SNS, 프로젝트 링크를 하나의 페이지로 관리하고 브랜딩하려는 크리에이터/개발자
-- **주요 목표**: 별도의 서버/DB 로그인 없이도 내 브라우저에서 링크를 자유롭게 추가·수정·삭제하고, 브라우저를 닫아도 데이터가 안전하게 유지되도록 관리한다.
+- **주요 목표**: 별도의 서버/DB 없이도 브라우저 로컬스토리지를 통해 데이터를 즉시 추가·수정·삭제하고 브라우저를 닫아도 안전하게 보존한다.
 
 #### 1) 링크 추가 (Add Link) 시나리오
 1. **상황**: 새로운 사이드 프로젝트를 배포하여 내 마이링크 목록에 새로 노출하고 싶다.
@@ -155,7 +184,7 @@ flowchart LR
    - 제목, URL, 설명을 입력하고 [추가]를 실행한다.
    - 시스템은 고유 ID를 생성하고 `isActive: true` 상태로 `mylink_profile_data`의 `links` 배열 끝에 추가한다.
 3. **결과**:
-   - 브라우저 로컬스토리지에 즉시 동기화되며, 화면 목록에 새 링크 카드가 즉시 렌더링된다.
+   - 브라우저 로컬스토리지에 즉시 동기화되며, 화면 목록에 새 TDS 링크 카드가 즉시 렌더링된다.
 
 #### 2) 링크 수정 (Edit Link) 시나리오
 1. **상황**: 기존 링크의 제목을 변경하거나 링크 URL에 오타가 있어 수정해야 한다.
@@ -187,7 +216,7 @@ flowchart LR
 
 | 단계 | 목표 | 주요 내용 | 상태 |
 |:---:|---|---|:---:|
-| **Phase 1** | **로컬스토리지 프로필 페이지** | • 로컬스토리지 연동 및 자동 시딩<br>• SSR 안전한 렌더링<br>• **shadcn/ui 기반 반응형 프로필 단일 뷰** | **🎯 현재 시연** |
+| **Phase 1** | **로컬스토리지 프로필 페이지** | • 로컬스토리지 연동 및 자동 시딩<br>• SSR 안전한 렌더링<br>• **shadcn/ui × 토스 디자인 시스템(TDS) 기반 반응형 프로필 단일 뷰** | **🎯 현재 시연** |
 | **Phase 2** | **실시간 편집 대시보드** | • 프로필/링크 인라인 편집 UI<br>• 링크 활성화 ON/OFF 스위치<br>• 드래그 앤 드롭(DnD) 순서 재배치 | ⏳ 차기 단계 |
 | **Phase 3** | **테마 커스텀 엔진** | • 6종 감성 프리셋 테마 원클릭 변경<br>• 버튼 모양/배경색 피커 연동 | ⏳ 차기 단계 |
 | **Phase 4** | **로컬 통계 & 백업** | • 페이지 조회수, 링크별 클릭 수(CTR) 카운터<br>• JSON Export / Import 백업 모듈 | ⏳ 차기 단계 |
