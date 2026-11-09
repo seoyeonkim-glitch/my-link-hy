@@ -5,8 +5,8 @@ import {
   BarChart3,
   ChevronRight,
   FileText,
+  Globe,
   Mail,
-  PenTool,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -34,7 +34,13 @@ function GithubOctocatIcon({ className }: { className?: string }) {
   );
 }
 
-function getIconConfig(icon?: LinkIconType) {
+function getIconConfig(icon?: LinkIconType, url?: string) {
+  if (icon === "github" || url?.includes("github.com")) {
+    return {
+      Icon: GithubOctocatIcon,
+      badgeClassName: "bg-white text-[#F43F5E] border border-[#E5E8EB]",
+    };
+  }
   switch (icon) {
     case "chart":
       return {
@@ -46,11 +52,6 @@ function getIconConfig(icon?: LinkIconType) {
         Icon: FileText,
         badgeClassName: "bg-white text-[#6B7684] border border-[#E5E8EB]",
       };
-    case "github":
-      return {
-        Icon: GithubOctocatIcon,
-        badgeClassName: "bg-white text-[#F43F5E] border border-[#E5E8EB]",
-      };
     case "mail":
       return {
         Icon: Mail,
@@ -59,8 +60,8 @@ function getIconConfig(icon?: LinkIconType) {
     case "web":
     default:
       return {
-        Icon: PenTool,
-        badgeClassName: "bg-white text-[#F59E0B] border border-[#E5E8EB]",
+        Icon: Globe,
+        badgeClassName: "bg-white text-[#3182F6] border border-[#E5E8EB]",
       };
   }
 }
@@ -70,8 +71,9 @@ export interface LinkCardItemProps {
 }
 
 export function LinkCardItem({ link }: LinkCardItemProps) {
-  const { Icon, badgeClassName } = getIconConfig(link.icon);
+  const { Icon, badgeClassName } = getIconConfig(link.icon, link.url);
   const isExternal = link.url.startsWith("http");
+  const subtitle = link.description || link.url;
 
   return (
     <Link
@@ -97,15 +99,11 @@ export function LinkCardItem({ link }: LinkCardItemProps) {
               <Badge variant={link.badge.variant}>{link.badge.text}</Badge>
             )}
           </div>
-          {link.description && (
-            <CardDescription>{link.description}</CardDescription>
-          )}
+          {subtitle && <CardDescription>{subtitle}</CardDescription>}
         </div>
 
         <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-          {link.actionLabel && (
-            <Badge variant="action">{link.actionLabel}</Badge>
-          )}
+          <Badge variant="action">{link.actionLabel ?? "방문"}</Badge>
           <ChevronRight
             className="w-3.5 h-3.5 text-[#B0B8C1]"
             aria-hidden="true"
