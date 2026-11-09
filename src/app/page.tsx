@@ -55,6 +55,7 @@ export default function HomePage() {
           actionLabel: data.actionLabel ?? "방문",
           isActive: data.isActive ?? true,
           createdAt: data.createdAt ?? "",
+          updatedAt: data.updatedAt ?? undefined,
         };
       });
 
@@ -123,11 +124,14 @@ export default function HomePage() {
     id: string,
     updatedValues: { title: string; url: string }
   ) => {
+    const now = new Date().toISOString();
+
     try {
       const linkDocRef = doc(db, "users", "anonymous", "links", id);
       await updateDoc(linkDocRef, {
         title: updatedValues.title,
         url: updatedValues.url,
+        updatedAt: now,
       });
 
       await fetchLinks();
