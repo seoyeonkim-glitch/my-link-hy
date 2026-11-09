@@ -16,6 +16,21 @@ const Card = React.forwardRef<
 ));
 Card.displayName = "Card";
 
+const CardListRow = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "hover:bg-[#F2F4F6] active:bg-[#F2F4F6] rounded-[16px] transition-colors p-3.5 flex items-center gap-[14px] text-[#191F28]",
+      className
+    )}
+    {...props}
+  />
+));
+CardListRow.displayName = "CardListRow";
+
 const CardHeader = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -35,7 +50,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-[15px] font-semibold leading-snug tracking-[-0.005em] text-[#191F28]",
+      "text-[15px] font-semibold leading-snug tracking-[-0.005em] text-[#191F28] truncate",
       className
     )}
     {...props}
@@ -49,7 +64,7 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-[13px] font-normal text-[#8B95A1]", className)}
+    className={cn("text-[13px] font-normal text-[#8B95A1] truncate", className)}
     {...props}
   />
 ));
@@ -77,6 +92,7 @@ CardFooter.displayName = "CardFooter";
 
 export {
   Card,
+  CardListRow,
   CardHeader,
   CardFooter,
   CardTitle,
