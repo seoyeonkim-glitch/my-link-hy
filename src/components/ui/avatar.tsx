@@ -1,13 +1,14 @@
 "use client";
 
 import * as React from "react";
+import { Avatar as AvatarPrimitive } from "@base-ui/react/avatar";
 import { cn } from "@/lib/utils";
 
 const Avatar = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
+  HTMLSpanElement,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Root>
 >(({ className, ...props }, ref) => (
-  <div
+  <AvatarPrimitive.Root
     ref={ref}
     className={cn(
       "relative flex h-20 w-20 shrink-0 overflow-hidden rounded-full bg-[#F2F4F6]",
@@ -19,14 +20,13 @@ const Avatar = React.forwardRef<
 Avatar.displayName = "Avatar";
 
 export interface AvatarImageProps
-  extends React.ImgHTMLAttributes<HTMLImageElement> {
+  extends React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Image> {
   fallbackSrc?: string;
 }
 
 const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
   ({ className, fallbackSrc, onError, alt = "", ...props }, ref) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <AvatarPrimitive.Image
       ref={ref}
       alt={alt}
       className={cn("aspect-square h-full w-full object-cover", className)}
@@ -43,10 +43,10 @@ const AvatarImage = React.forwardRef<HTMLImageElement, AvatarImageProps>(
 AvatarImage.displayName = "AvatarImage";
 
 const AvatarFallback = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
+  HTMLSpanElement,
+  React.ComponentPropsWithoutRef<typeof AvatarPrimitive.Fallback>
 >(({ className, ...props }, ref) => (
-  <div
+  <AvatarPrimitive.Fallback
     ref={ref}
     className={cn(
       "flex h-full w-full items-center justify-center rounded-full bg-[#F2F4F6] text-[18px] font-bold text-[#4E5968]",

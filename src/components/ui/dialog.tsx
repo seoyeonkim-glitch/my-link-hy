@@ -1,25 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-interface DialogContextValue {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-const DialogContext = React.createContext<DialogContextValue | undefined>(
-  undefined
-);
-
-function useDialogContext() {
-  const context = React.useContext(DialogContext);
-  if (!context) {
-    throw new Error("Dialog components must be used within a <Dialog />");
-  }
-  return context;
-}
 
 export interface DialogProps {
   open?: boolean;
@@ -29,103 +13,67 @@ export interface DialogProps {
 }
 
 function Dialog({
-  open: controlledOpen,
-  defaultOpen = false,
+  open,
+  defaultOpen,
   onOpenChange,
   children,
 }: DialogProps) {
-  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(defaultOpen);
-  const isControlled = controlledOpen !== undefined;
-  const open = isControlled ? controlledOpen : uncontrolledOpen;
-
-  const handleOpenChange = React.useCallback(
-    (nextOpen: boolean) => {
-      if (!isControlled) {
-        setUncontrolledOpen(nextOpen);
-      }
-      onOpenChange?.(nextOpen);
-    },
-    [isControlled, onOpenChange]
-  );
-
-  React.useEffect(() => {
-    if (!open) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        handleOpenChange(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [open, handleOpenChange]);
-
   return (
-    <DialogContext.Provider value={{ open, onOpenChange: handleOpenChange }}>
+    <DialogPrimitive.Root
+      open={open}
+      defaultOpen={defaultOpen}
+      onOpenChange={(nextOpen) => onOpenChange?.(nextOpen)}
+    >
       {children}
-    </DialogContext.Provider>
+    </DialogPrimitive.Root>
   );
 }
 
 const DialogTrigger = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
->(({ onClick, ...props }, ref) => {
-  const { onOpenChange } = useDialogContext();
-  return (
-    <button
-      ref={ref}
-      type="button"
-      onClick={(e) => {
-        onOpenChange(true);
-        onClick?.(e);
-      }}
-      {...props}
-    />
-  );
-});
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Trigger>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Trigger ref={ref} className={className} {...props} />
+));
 DialogTrigger.displayName = "DialogTrigger";
+
+const DialogClose = React.forwardRef<
+  HTMLButtonElement,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Close>
+>(({ className, ...props }, ref) => (
+  <DialogPrimitive.Close ref={ref} className={className} {...props} />
+));
+DialogClose.displayName = "DialogClose";
 
 const DialogContent = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, children, ...props }, ref) => {
-  const { open, onOpenChange } = useDialogContext();
-
-  if (!open) return null;
-
-  return (
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Popup>
+>(({ className, children, ...props }, ref) => (
+  <DialogPrimitive.Portal>
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop 오버레이 */}
-      <div
-        aria-hidden="true"
-        onClick={() => onOpenChange(false)}
-        className="fixed inset-0 bg-[#191F28]/45 backdrop-blur-[2px] transition-opacity"
-      />
+      {/* Base UI Backdrop 오버레이 */}
+      <DialogPrimitive.Backdrop className="fixed inset-0 bg-[#191F28]/45 backdrop-blur-[2px] transition-opacity" />
 
-      {/* 다이얼로그 카드 표면 */}
-      <div
+      {/* Base UI Popup 다이얼로그 카드 표면 */}
+      <DialogPrimitive.Popup
         ref={ref}
-        role="dialog"
-        aria-modal="true"
         className={cn(
-          "relative z-50 w-full max-w-[380px] rounded-[24px] bg-white p-5 sm:p-6 text-[#191F28] shadow-[0_20px_50px_rgba(25,31,40,0.18)] border border-[#E5E8EB]/80",
+          "relative z-50 w-full max-w-[380px] rounded-[24px] bg-white p-5 sm:p-6 text-[#191F28] shadow-[0_20px_50px_rgba(25,31,40,0.18)] border border-[#E5E8EB]/80 focus:outline-none",
           className
         )}
         {...props}
       >
         {children}
-        <button
-          type="button"
-          onClick={() => onOpenChange(false)}
+        <DialogPrimitive.Close
           aria-label="다이얼로그 닫기"
           className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full text-[#8B95A1] hover:bg-[#F2F4F6] hover:text-[#191F28] transition-colors cursor-pointer bg-transparent border-none"
         >
           <X className="h-4 w-4" aria-hidden="true" />
-        </button>
-      </div>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Popup>
     </div>
-  );
-});
+  </DialogPrimitive.Portal>
+));
 DialogContent.displayName = "DialogContent";
 
 const DialogHeader = ({
@@ -141,9 +89,9 @@ DialogHeader.displayName = "DialogHeader";
 
 const DialogTitle = React.forwardRef<
   HTMLHeadingElement,
-  React.HTMLAttributes<HTMLHeadingElement>
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
-  <h2
+  <DialogPrimitive.Title
     ref={ref}
     className={cn(
       "text-[18px] font-bold leading-snug tracking-[-0.015em] text-[#191F28]",
@@ -156,9 +104,9 @@ DialogTitle.displayName = "DialogTitle";
 
 const DialogDescription = React.forwardRef<
   HTMLParagraphElement,
-  React.HTMLAttributes<HTMLParagraphElement>
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Description>
 >(({ className, ...props }, ref) => (
-  <p
+  <DialogPrimitive.Description
     ref={ref}
     className={cn("text-[13px] font-normal text-[#6B7684]", className)}
     {...props}
@@ -180,6 +128,7 @@ DialogFooter.displayName = "DialogFooter";
 export {
   Dialog,
   DialogTrigger,
+  DialogClose,
   DialogContent,
   DialogHeader,
   DialogTitle,
