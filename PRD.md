@@ -91,13 +91,13 @@
 
 ## 3. [Phase 1: 현재 시연] 로컬스토리지 프로필 페이지 요구사항
 
-### 3.1 [FR-01] 로컬스토리지 연동 엔진 (Storage Engine)
-1. **스토리지 키 정의**:
-   - `mylink_profile_data` 단일 키에 JSON 객체 형태로 프로필과 링크 목록 저장.
-2. **최초 접속 시 자동 시딩(Auto-Seeding) 및 Mock API 데이터 활용**:
-   - 브라우저 로컬스토리지를 조회하여 데이터가 없을 경우, **4.2절에 정의된 백엔드 Mock API용 기본 더미 데이터(5개 링크 항목)**를 기반으로 즉시 초기화.
-3. **SSR Hydration Mismatch 방지**:
-   - Next.js 서버 렌더링 시점과 브라우저 마운트 시점의 불일치를 방지하기 위해 마운트 완료(`isMounted`) 후 안전하게 로컬스토리지 값 동기화.
+### 3.1 [FR-01] Cloud Firestore 연동 엔진 (Firestore Storage Engine)
+1. **Firestore 컬렉션 경로 정의**:
+   - `users/anonymous/links` (`collection(db, "users", "anonymous", "links")`) 경로에 링크 문서를 영구 저장 및 조회.
+2. **초기 더미 데이터 및 Firestore 병합**:
+   - 페이지 진입 시 4.2절에 정의된 기본 더미 데이터와 Firestore `users/anonymous/links` 컬렉션의 문서를 함께 조회하여 렌더링.
+3. **링크 추가 (`addDoc`)**:
+   - `AddLinkDialog`를 통해 추가된 링크는 Firestore `users/anonymous/links`에 즉시 저장되며 새로고침 후에도 영구 유지됨.
 
 ### 3.2 [FR-02] TDS × shadcn/ui 프로필 페이지 뷰 (Profile View Components)
 1. **프로필 헤더 영역 (`ProfileHeader`)**:
