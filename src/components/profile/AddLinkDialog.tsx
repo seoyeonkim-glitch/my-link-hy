@@ -150,10 +150,6 @@ export function AddLinkDialog({
             variant: badgeType,
           };
 
-    // 다이얼로그를 닫고 메인 버튼에 '추가 중...' 로딩 상태 표시
-    resetAll();
-    setOpen(false);
-
     await onAddLink({
       title: values.title,
       url: values.url,
@@ -165,6 +161,10 @@ export function AddLinkDialog({
       isActive: true,
       clickCount: 0,
     });
+
+    // 저장 및 목록 갱신이 완료된 후 폼 초기화 및 모달 닫기
+    resetAll();
+    setOpen(false);
   };
 
   const isBusy = isAdding || isSubmitting;
@@ -178,17 +178,8 @@ export function AddLinkDialog({
         onClick={() => setOpen(true)}
         className="w-full h-[48px] rounded-[14px] text-[15px] font-bold"
       >
-        {isBusy ? (
-          <>
-            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-            추가 중...
-          </>
-        ) : (
-          <>
-            <Plus className="w-4 h-4" aria-hidden="true" />
-            새 링크 추가하기
-          </>
-        )}
+        <Plus className="w-4 h-4" aria-hidden="true" />
+        새 링크 추가하기
       </Button>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -331,6 +322,7 @@ export function AddLinkDialog({
               <Button
                 type="button"
                 variant="secondary"
+                disabled={isBusy}
                 onClick={() => handleOpenChange(false)}
                 className="h-[46px] rounded-[12px] text-[14px] font-bold"
               >
@@ -343,13 +335,10 @@ export function AddLinkDialog({
                 className="h-[46px] rounded-[12px] text-[14px] font-bold"
               >
                 {isBusy ? (
-                  <>
-                    <Loader2
-                      className="w-4 h-4 animate-spin"
-                      aria-hidden="true"
-                    />
-                    추가 중...
-                  </>
+                  <Loader2
+                    className="w-4 h-4 animate-spin"
+                    aria-hidden="true"
+                  />
                 ) : (
                   "추가하기"
                 )}
