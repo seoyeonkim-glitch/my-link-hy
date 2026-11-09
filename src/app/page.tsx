@@ -31,6 +31,7 @@ import {
 import { ProfileActions } from "@/components/profile/ProfileActions";
 import { LinkListSection } from "@/components/profile/LinkListSection";
 import { AddLinkDialog } from "@/components/profile/AddLinkDialog";
+import { PreviewProfileDialog } from "@/components/profile/PreviewProfileDialog";
 import { DEFAULT_PROFILE_DATA } from "@/constants";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import type { LinkItem } from "@/types";
@@ -52,6 +53,7 @@ export default function HomePage() {
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (message: string) => {
@@ -208,6 +210,13 @@ export default function HomePage() {
     showToast("이메일 복사됐어요 ✓");
   };
 
+  const handleCopyPageLink = () => {
+    if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(window.location.href);
+      showToast("내 페이지 링크가 복사됐어요 ✓");
+    }
+  };
+
   const handleShare = () => {
     const shareTitle = `${
       userInfo?.displayName ||
@@ -323,6 +332,8 @@ export default function HomePage() {
             isAuthActionLoading={isAuthActionLoading}
             onGoogleLogin={handleGoogleLogin}
             onLogout={handleLogout}
+            onPreviewPage={() => setIsPreviewOpen(true)}
+            onCopyPageLink={handleCopyPageLink}
             onShare={handleShare}
           />
 
@@ -435,6 +446,18 @@ export default function HomePage() {
           Synced with Cloud Firestore
         </p>
       </footer>
+
+      {/* ── 내 페이지 미리보기 다이얼로그 (Base UI Dialog) ── */}
+      <PreviewProfileDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        displayName={displayUserName}
+        email={displayUserEmail}
+        bio={displayUserBio}
+        avatarUrl={displayUserAvatar}
+        links={links}
+        onCopyLink={handleCopyPageLink}
+      />
 
       {/* ── 토스트 피드백 (shadcn/ui Toast) ── */}
       <Toast visible={Boolean(toastMessage)}>{toastMessage}</Toast>
