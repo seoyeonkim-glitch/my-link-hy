@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "김서연 | 프로필",
-  description: "김서연의 프로필 페이지 — 링크, 연락처, 소개",
+  title: "김서연 | 마이페이지",
+  description: "김서연의 마이링크 페이지 — 링크, 연락처, 소개",
 };
 
 export default function RootLayout({
@@ -25,7 +26,10 @@ export default function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
         />
       </head>
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

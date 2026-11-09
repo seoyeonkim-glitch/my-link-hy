@@ -20,10 +20,10 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { CheckCircle2, Loader2, Lock } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Toast } from "@/components/ui/toast";
 import {
   GoogleIcon,
   ProfileHeader,
@@ -54,14 +54,6 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const showToast = (message: string) => {
-    setToastMessage(message);
-    setTimeout(() => {
-      setToastMessage((prev) => (prev === message ? null : prev));
-    }, 2000);
-  };
 
   // Firestore(users/{user.uid}/links)에서 createdAt 기준 최신순(desc)으로 링크 불러오기
   const fetchLinks = useCallback(async (uid: string) => {
@@ -177,10 +169,10 @@ export default function HomePage() {
     setIsAuthActionLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
-      showToast("구글 계정으로 로그인됐어요 ✓");
+      toast.success("구글 계정으로 로그인됐어요 ✓");
     } catch (error) {
       console.error("구글 로그인 실패:", error);
-      showToast("로그인에 실패했어요. 다시 시도해 주세요.");
+      toast.error("로그인에 실패했어요. 다시 시도해 주세요.");
     } finally {
       setIsAuthActionLoading(false);
     }
@@ -191,10 +183,10 @@ export default function HomePage() {
     setIsAuthActionLoading(true);
     try {
       await signOut(auth);
-      showToast("로그아웃됐어요 ✓");
+      toast.success("로그아웃됐어요 ✓");
     } catch (error) {
       console.error("로그아웃 실패:", error);
-      showToast("로그아웃에 실패했어요. 다시 시도해 주세요.");
+      toast.error("로그아웃에 실패했어요. 다시 시도해 주세요.");
     } finally {
       setIsAuthActionLoading(false);
     }
@@ -207,13 +199,13 @@ export default function HomePage() {
       DEFAULT_PROFILE_DATA.socialLinks.email ||
       "seoyeonkim@hanyang.ac.kr";
     navigator.clipboard.writeText(email);
-    showToast("이메일 복사됐어요 ✓");
+    toast.success("이메일 복사됐어요 ✓");
   };
 
   const handleCopyPageLink = () => {
     if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
-      showToast("내 페이지 링크가 복사됐어요 ✓");
+      toast.success("내 페이지 링크가 복사됐어요 ✓");
     }
   };
 
@@ -231,7 +223,7 @@ export default function HomePage() {
       });
     } else if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
-      showToast("링크 복사됐어요 ✓");
+      toast.success("링크 복사됐어요 ✓");
     }
   };
 
@@ -240,7 +232,7 @@ export default function HomePage() {
     newLinkInput: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
   ) => {
     if (!user) {
-      showToast("로그인 이후에 사용할 수 있어요.");
+      toast.error("로그인 이후에 사용할 수 있어요.");
       return;
     }
 
@@ -259,10 +251,10 @@ export default function HomePage() {
       ]);
 
       await fetchLinks(user.uid);
-      showToast("새 링크가 저장됐어요 ✓");
+      toast.success("새 링크가 저장됐어요 ✓");
     } catch (error) {
       console.error("Firestore 링크 저장 실패:", error);
-      showToast("링크 저장에 실패했어요. 다시 시도해 주세요.");
+      toast.error("링크 저장에 실패했어요. 다시 시도해 주세요.");
     } finally {
       setIsAdding(false);
     }
@@ -285,10 +277,10 @@ export default function HomePage() {
       });
 
       await fetchLinks(user.uid);
-      showToast("링크가 수정됐어요 ✓");
+      toast.success("링크가 수정됐어요 ✓");
     } catch (error) {
       console.error("Firestore 링크 수정 실패:", error);
-      showToast("링크 수정에 실패했어요. 다시 시도해 주세요.");
+      toast.error("링크 수정에 실패했어요. 다시 시도해 주세요.");
     }
   };
 
@@ -301,10 +293,10 @@ export default function HomePage() {
       await deleteDoc(linkDocRef);
 
       await fetchLinks(user.uid);
-      showToast("링크가 삭제됐어요 ✓");
+      toast.success("링크가 삭제됐어요 ✓");
     } catch (error) {
       console.error("Firestore 링크 삭제 실패:", error);
-      showToast("링크 삭제에 실패했어요. 다시 시도해 주세요.");
+      toast.error("링크 삭제에 실패했어요. 다시 시도해 주세요.");
     }
   };
 
@@ -458,9 +450,6 @@ export default function HomePage() {
         links={links}
         onCopyLink={handleCopyPageLink}
       />
-
-      {/* ── 토스트 피드백 (shadcn/ui Toast) ── */}
-      <Toast visible={Boolean(toastMessage)}>{toastMessage}</Toast>
     </div>
   );
 }
