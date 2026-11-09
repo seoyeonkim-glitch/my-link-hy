@@ -1,14 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  addDoc,
-  collection,
-  getDocs,
-  orderBy,
-  query,
-  serverTimestamp,
-} from "firebase/firestore";
+import { useState } from "react";
+import { addDoc, collection } from "firebase/firestore";
 import { Card } from "@/components/ui/card";
 import { Toast } from "@/components/ui/toast";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
@@ -30,60 +23,6 @@ export default function HomePage() {
     }, 2000);
   };
 
-  // 마운트 시 Firestore(users/anonymous/links)에 저장된 링크 목록 불러오기
-  useEffect(() => {
-    const fetchFirestoreLinks = async () => {
-      try {
-        const linksRef = collection(db, "users", "anonymous", "links");
-        const q = query(linksRef, orderBy("createdAt", "asc"));
-        const snapshot = await getDocs(q);
-
-        if (!snapshot.empty) {
-          const firestoreLinks: LinkItem[] = snapshot.docs.map((docSnap, idx) => {
-            const data = docSnap.data();
-            return {
-              id: docSnap.id,
-              userId: data.userId ?? "anonymous",
-              title: data.title ?? "",
-              url: data.url ?? "",
-              description: data.description || undefined,
-              category: data.category ?? "PROJECT",
-              icon: data.icon ?? "chart",
-              badge: data.badge || undefined,
-              actionLabel: data.actionLabel ?? "보기",
-              order: data.order ?? DEFAULT_PROFILE_DATA.links.length + idx + 1,
-              isActive: data.isActive ?? true,
-              clickCount: data.clickCount ?? 0,
-              createdAt:
-                typeof data.createdAt === "string"
-                  ? data.createdAt
-                  : new Date().toISOString(),
-              updatedAt:
-                typeof data.updatedAt === "string"
-                  ? data.updatedAt
-                  : new Date().toISOString(),
-            };
-          });
-
-          setProfile((prev) => {
-            const existingIds = new Set(DEFAULT_PROFILE_DATA.links.map((l) => l.id));
-            const uniqueNewLinks = firestoreLinks.filter(
-              (l) => !existingIds.has(l.id)
-            );
-            return {
-              ...prev,
-              links: [...DEFAULT_PROFILE_DATA.links, ...uniqueNewLinks],
-            };
-          });
-        }
-      } catch (error) {
-        console.error("Firestore 링크 목록 조회 실패:", error);
-      }
-    };
-
-    fetchFirestoreLinks();
-  }, []);
-
   const handleCopyEmail = () => {
     const email = profile.socialLinks.email ?? "seoyeonkim@hanyang.ac.kr";
     navigator.clipboard.writeText(email);
@@ -102,55 +41,40 @@ export default function HomePage() {
     }
   };
 
-  // Firestore(users/anonymous/links)에 새 링크 저장 후 화면 반영
+  // 링크 추가 시 Firestore(users/anonymous/links)에 { title, url, createdAt } 저장 및 로컬 상태 반영
   const handleAddLink = async (
     newLinkInput: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
   ) => {
     const now = new Date().toISOString();
-    const nextOrder =
-      profile.links.reduce((max, item) => Math.max(max, item.order ?? 0), 0) + 1;
-
-    // Firestore는 undefined 값을 허용하지 않으므로 유효한 필드만 구성
-    const firestorePayload: Record<string, unknown> = {
-      userId: "anonymous",
-      title: newLinkInput.title,
-      url: newLinkInput.url,
-      category: newLinkInput.category ?? "PROJECT",
-      icon: newLinkInput.icon ?? "chart",
-      actionLabel: newLinkInput.actionLabel ?? "보기",
-      order: nextOrder,
-      isActive: true,
-      clickCount: 0,
-      createdAt: now,
-      updatedAt: now,
-      timestamp: serverTimestamp(),
-    };
-
-    if (newLinkInput.description) {
-      firestorePayload.description = newLinkInput.description;
-    }
-    if (newLinkInput.badge) {
-      firestorePayload.badge = newLinkInput.badge;
-    }
 
     try {
       const linksRef = collection(db, "users", "anonymous", "links");
-      const docRef = await addDoc(linksRef, firestorePayload);
-
-      const createdLink: LinkItem = {
-        ...newLinkInput,
-        id: docRef.id,
-        userId: "anonymous",
-        order: nextOrder,
+      const docRef = await addDoc(linksRef, {
+        title: newLinkInput.title,
+        url: newLinkInput.url,
         createdAt: now,
-        updatedAt: now,
-      };
+      });
 
-      setProfile((prev) => ({
-        ...prev,
-        links: [...prev.links, createdLink],
-        updatedAt: now,
-      }));
+      setProfile((prev) => {
+        const nextOrder =
+          prev.links.reduce((max, item) => Math.max(max, item.order ?? 0), 0) +
+          1;
+
+        const createdLink: LinkItem = {
+          ...newLinkInput,
+          id: docRef.id,
+          userId: "anonymous",
+          order: nextOrder,
+          createdAt: now,
+          updatedAt: now,
+        };
+
+        return {
+          ...prev,
+          links: [...prev.links, createdLink],
+          updatedAt: now,
+        };
+      });
 
       showToast("새 링크가 저장됐어요 ✓");
     } catch (error) {
