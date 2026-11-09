@@ -8,7 +8,7 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "bg-white text-[#191F28] rounded-[24px] border-none shadow-none overflow-hidden",
+      "bg-white text-[#191F28] rounded-[28px] border border-[#E5E8EB]/80 shadow-[0_8px_30px_rgba(25,31,40,0.04)] overflow-hidden",
       className
     )}
     {...props}
@@ -23,7 +23,7 @@ const CardListRow = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "hover:bg-[#F2F4F6] active:bg-[#F2F4F6] rounded-[16px] transition-colors p-3.5 flex items-center gap-[14px] text-[#191F28]",
+      "group bg-[#F9FAFB]/70 hover:bg-[#F2F4F6]/80 active:scale-[0.99] border border-[#E5E8EB] rounded-[18px] transition-all p-4 flex items-center gap-3.5 text-[#191F28]",
       className
     )}
     {...props}
@@ -50,7 +50,7 @@ const CardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-[15px] font-semibold leading-snug tracking-[-0.005em] text-[#191F28] truncate",
+      "text-[15px] font-bold leading-snug tracking-[-0.01em] text-[#191F28]",
       className
     )}
     {...props}
@@ -64,7 +64,10 @@ const CardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-[13px] font-normal text-[#8B95A1] truncate", className)}
+    className={cn(
+      "text-[12.5px] font-normal leading-relaxed text-[#6B7684] line-clamp-2",
+      className
+    )}
     {...props}
   />
 ));

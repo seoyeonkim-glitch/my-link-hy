@@ -1,66 +1,60 @@
 "use client";
 
-import { ChevronRight, Share2 } from "lucide-react";
-import {
-  CardDescription,
-  CardListRow,
-  CardTitle,
-} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { LinkCardItem } from "@/components/profile/LinkCardItem";
 import type { LinkItem } from "@/types";
 
 export interface LinkListSectionProps {
   links: LinkItem[];
-  shared: boolean;
-  onShare: () => void;
 }
 
-export function LinkListSection({
-  links,
-  shared,
-  onShare,
-}: LinkListSectionProps) {
+export function LinkListSection({ links }: LinkListSectionProps) {
+  const projectLinks = links.filter(
+    (link) => link.category === "PROJECT" || link.category === "PORTFOLIO"
+  );
+  const techAndBlogLinks = links.filter(
+    (link) =>
+      link.category !== "PROJECT" && link.category !== "PORTFOLIO"
+  );
+
+  const sections = [
+    {
+      id: "projects",
+      title: "🚀 주요 프로젝트",
+      items: projectLinks,
+    },
+    {
+      id: "tech-blog",
+      title: "📚 기술 & 블로그",
+      items: techAndBlogLinks,
+    },
+  ].filter((section) => section.items.length > 0);
+
   return (
-    <section aria-label="링크 목록" className="pb-2">
-      <div className="flex items-center justify-between px-6 pt-5 pb-2.5">
-        <p className="text-[13px] font-semibold text-[#8B95A1]">
-          링크 {links.length}
-        </p>
-      </div>
+    <section aria-label="링크 목록" className="px-6 pb-7 flex flex-col gap-6">
+      {sections.map((section) => (
+        <div key={section.id} className="flex flex-col gap-3">
+          {/* 카테고리 헤더 + 우측 카운트 Badge */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-[13.5px] font-bold tracking-[-0.01em] text-[#191F28]">
+              {section.title}
+            </h2>
+            <Badge variant="count">{section.items.length}</Badge>
+          </div>
 
-      <ul role="list" className="flex flex-col px-2.5 pb-1">
-        {links.map((link) => (
-          <li key={link.id} role="listitem">
-            <LinkCardItem link={link} />
-          </li>
-        ))}
+          <Separator />
 
-        {/* 프로필 공유하기 로우 (shadcn/ui CardListRow 재사용) */}
-        <li role="listitem">
-          <button
-            type="button"
-            onClick={onShare}
-            className="w-full text-left bg-transparent border-none p-0 cursor-pointer"
-          >
-            <CardListRow>
-              <span className="flex items-center justify-center w-[42px] h-[42px] rounded-[12px] shrink-0 bg-[#E8F3FF] text-[#3182F6]">
-                <Share2 className="w-5 h-5" aria-hidden="true" />
-              </span>
-
-              <div className="flex flex-col gap-0.5 flex-1 min-w-0 overflow-hidden">
-                <CardTitle>
-                  {shared ? "링크 복사됐어요 ✓" : "프로필 공유하기"}
-                </CardTitle>
-                <CardDescription>친구와 동료에게 전달해요</CardDescription>
-              </div>
-
-              <span className="text-[#B0B8C1] shrink-0 flex items-center">
-                <ChevronRight className="w-4 h-4" aria-hidden="true" />
-              </span>
-            </CardListRow>
-          </button>
-        </li>
-      </ul>
+          {/* 개별 링크 카드 목록 */}
+          <ul role="list" className="flex flex-col gap-2.5 pt-0.5">
+            {section.items.map((link) => (
+              <li key={link.id} role="listitem">
+                <LinkCardItem link={link} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
     </section>
   );
 }

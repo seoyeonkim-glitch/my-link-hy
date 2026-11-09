@@ -5,7 +5,9 @@ export type LinkCategory =
   | "PORTFOLIO"
   | "CONTACT";
 
-export type LinkIconType = "github" | "mail" | "web";
+export type LinkIconType = "github" | "mail" | "web" | "file" | "chart";
+
+export type LinkBadgeVariant = "hot" | "brand" | "new";
 
 export interface LinkItem {
   id: string;
@@ -15,6 +17,11 @@ export interface LinkItem {
   description?: string;
   category?: LinkCategory;
   icon?: LinkIconType;
+  badge?: {
+    text: string;
+    variant: LinkBadgeVariant;
+  };
+  actionLabel?: string;
   order?: number;
   isActive: boolean;
   clickCount?: number;
@@ -31,6 +38,8 @@ export interface MyLinkProfileData {
   socialLinks: {
     github?: string;
     email?: string;
+    blog?: string;
+    portfolio?: string;
   };
   links: LinkItem[];
   updatedAt: string;

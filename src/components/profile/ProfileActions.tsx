@@ -1,49 +1,89 @@
 "use client";
 
 import Link from "next/link";
+import { Briefcase, Globe, Mail, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export interface ProfileActionsProps {
-  copied: boolean;
   onCopyEmail: () => void;
   githubUrl?: string;
+  blogUrl?: string;
+  portfolioUrl?: string;
 }
 
 export function ProfileActions({
-  copied,
   onCopyEmail,
-  githubUrl,
+  githubUrl = "https://github.com/seoyeonkim-glitch",
+  blogUrl = "https://velog.io/@seoyeonkim-glitch",
+  portfolioUrl = "https://notion.so/seoyeonkim-portfolio",
 }: ProfileActionsProps) {
   return (
-    <section aria-label="주요 액션" className="flex flex-col gap-2.5 px-6 py-5">
-      {/* 화면당 단 1개의 Primary CTA (blue-500) */}
+    <nav
+      aria-label="소셜 및 빠른 액션"
+      className="flex items-center justify-center gap-3 px-6 pb-6"
+    >
+      <Link
+        href={blogUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="블로그 방문하기"
+      >
+        <Button
+          type="button"
+          variant="iconCircle"
+          size="icon"
+          tabIndex={-1}
+          className="text-[#EC4899]"
+        >
+          <Globe className="w-4 h-4" aria-hidden="true" />
+        </Button>
+      </Link>
+
+      <Link
+        href={portfolioUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="포트폴리오 보기"
+      >
+        <Button
+          type="button"
+          variant="iconCircle"
+          size="icon"
+          tabIndex={-1}
+          className="text-[#8B5CF6]"
+        >
+          <Briefcase className="w-4 h-4" aria-hidden="true" />
+        </Button>
+      </Link>
+
+      <Link
+        href={githubUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub 프로필 방문하기"
+      >
+        <Button
+          type="button"
+          variant="iconCircle"
+          size="icon"
+          tabIndex={-1}
+          className="text-[#F43F5E]"
+        >
+          <Sparkles className="w-4 h-4" aria-hidden="true" />
+        </Button>
+      </Link>
+
       <Button
         type="button"
-        variant="default"
+        variant="iconCircle"
+        size="icon"
         onClick={onCopyEmail}
-        className="w-full"
+        aria-label="이메일 주소 복사하기"
+        title="이메일 복사하기"
+        className="text-[#6366F1]"
       >
-        {copied ? "이메일 복사됐어요 ✓" : "이메일로 연락하기"}
+        <Mail className="w-4 h-4" aria-hidden="true" />
       </Button>
-
-      {/* Secondary 액션 버튼 */}
-      {githubUrl && (
-        <Link
-          href={githubUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full no-underline"
-        >
-          <Button
-            type="button"
-            variant="secondary"
-            className="w-full"
-            tabIndex={-1}
-          >
-            GitHub 방문하기
-          </Button>
-        </Link>
-      )}
-    </section>
+    </nav>
   );
 }

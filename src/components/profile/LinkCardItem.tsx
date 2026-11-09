@@ -1,7 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Globe, Mail } from "lucide-react";
+import {
+  BarChart3,
+  ChevronRight,
+  FileText,
+  Mail,
+  PenTool,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   CardDescription,
   CardListRow,
@@ -10,7 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { LinkIconType, LinkItem } from "@/types";
 
-function GithubIcon({ className }: { className?: string }) {
+function GithubOctocatIcon({ className }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -29,21 +36,31 @@ function GithubIcon({ className }: { className?: string }) {
 
 function getIconConfig(icon?: LinkIconType) {
   switch (icon) {
+    case "chart":
+      return {
+        Icon: BarChart3,
+        badgeClassName: "bg-white text-[#10B981] border border-[#E5E8EB]",
+      };
+    case "file":
+      return {
+        Icon: FileText,
+        badgeClassName: "bg-white text-[#6B7684] border border-[#E5E8EB]",
+      };
     case "github":
       return {
-        Icon: GithubIcon,
-        badgeClassName: "bg-[#F0F0FF] text-[#6366F1]",
+        Icon: GithubOctocatIcon,
+        badgeClassName: "bg-white text-[#F43F5E] border border-[#E5E8EB]",
       };
     case "mail":
       return {
         Icon: Mail,
-        badgeClassName: "bg-[#FFF3E0] text-[#F57C00]",
+        badgeClassName: "bg-white text-[#F57C00] border border-[#E5E8EB]",
       };
     case "web":
     default:
       return {
-        Icon: Globe,
-        badgeClassName: "bg-[#E8F3FF] text-[#3182F6]",
+        Icon: PenTool,
+        badgeClassName: "bg-white text-[#F59E0B] border border-[#E5E8EB]",
       };
   }
 }
@@ -66,23 +83,34 @@ export function LinkCardItem({ link }: LinkCardItemProps) {
       <CardListRow>
         <span
           className={cn(
-            "flex items-center justify-center w-[42px] h-[42px] rounded-[12px] shrink-0",
+            "flex items-center justify-center w-[42px] h-[42px] rounded-[12px] shrink-0 shadow-2xs",
             badgeClassName
           )}
         >
           <Icon className="w-5 h-5" aria-hidden="true" />
         </span>
 
-        <div className="flex flex-col gap-0.5 flex-1 min-w-0 overflow-hidden">
-          <CardTitle>{link.title}</CardTitle>
+        <div className="flex flex-col gap-1 flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <CardTitle>{link.title}</CardTitle>
+            {link.badge && (
+              <Badge variant={link.badge.variant}>{link.badge.text}</Badge>
+            )}
+          </div>
           {link.description && (
             <CardDescription>{link.description}</CardDescription>
           )}
         </div>
 
-        <span className="text-[#B0B8C1] shrink-0 flex items-center">
-          <ChevronRight className="w-4 h-4" aria-hidden="true" />
-        </span>
+        <div className="flex items-center gap-1 shrink-0">
+          {link.actionLabel && (
+            <Badge variant="action">{link.actionLabel}</Badge>
+          )}
+          <ChevronRight
+            className="w-3.5 h-3.5 text-[#B0B8C1]"
+            aria-hidden="true"
+          />
+        </div>
       </CardListRow>
     </Link>
   );

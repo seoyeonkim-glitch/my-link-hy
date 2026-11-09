@@ -96,19 +96,18 @@
 3. **SSR Hydration Mismatch 방지**:
    - Next.js 서버 렌더링 시점과 브라우저 마운트 시점의 불일치를 방지하기 위해 마운트 완료(`isMounted`) 후 안전하게 로컬스토리지 값 동기화.
 
-### 3.2 [FR-02] TDS 프로필 페이지 뷰 (Profile View Components)
-1. **프로필 헤더 영역**:
-   - 아바타 이미지 (원형 마스크 80px 및 fallback 처리)
-   - 온라인 상태 표시 인디케이터 (`green-500`, 14px 원형 + 2.5px 흰색 보더)
-   - 사용자 이름 (`displayName`, TDS `display` 규격 22px/Bold) 및 핸들 (`@username`, 13px/Medium)
-   - 소개 문구 (`bio`, TDS `body` 규격 15px/Regular, 해요체)
-   - **shadcn `Badge` (TDS Chip)** 기반 관심사/역할 태그 칩 목록
-2. **액션 버튼 영역 (TDS 규격)**:
-   - **shadcn `Button` (default variant - Primary CTA)**: 이메일 복사하기 (클릭 시 클립보드 복사 + "이메일 복사됐어요 ✓" 피드백)
-   - **shadcn `Button` (secondary variant)**: 소셜 프로필(`GitHub 방문하기`) 새 탭 바로가기
-3. **링크 목록 영역 (`list-row`)**:
-   - **shadcn `Card`** 기반으로 활성화(`isActive: true`)된 링크들을 순서대로 출력
-   - 각 링크 카드: 좌측 `lucide-react` 전용 배경 아이콘 + 중앙 제목/설명 + 우측 Chevron 화살표
+### 3.2 [FR-02] TDS × shadcn/ui 프로필 페이지 뷰 (Profile View Components)
+1. **프로필 헤더 영역 (`ProfileHeader`)**:
+   - 상단 바: 좌측 `MyLink` 브랜드 로고 + 우측 원형 공유 아이콘 `Button` (`variant="iconCircle"`, `ArrowUpRight`)
+   - 아바타 이미지 (`Avatar`, `AvatarImage` 원형 마스크 82px 및 fallback 처리)
+   - 사용자 이름 (`displayName`, 20px/Bold) 및 소개 문구 (`bio`, 13px/Regular, 해요체)
+2. **소셜 퀵 액션 영역 (`ProfileActions`)**:
+   - **shadcn `Button` (`iconCircle` variant)**: 블로그, 포트폴리오, GitHub, 이메일 복사 등 4개의 원형 퀵 액션 아이콘 버튼 가로 배치
+   - 이메일 아이콘 클릭 시 클립보드 복사 + 하단 `Toast`("이메일 복사됐어요 ✓") 피드백 제공
+3. **카테고리별 링크 목록 영역 (`LinkListSection` & `LinkCardItem`)**:
+   - 카테고리 헤더(`🚀 주요 프로젝트`, `📚 기술 & 블로그`) + 우측 개수 카운트 **`Badge` (`variant="count"`)** + **`Separator`** 구분선
+   - **shadcn `Card` (`CardListRow`)** 기반으로 활성화(`isActive: true`)된 링크들을 독립된 테두리 카드 형태로 출력
+   - 각 링크 카드: 좌측 전용 아이콘 박스 + 중앙 제목 및 상태 **`Badge` (`HOT`, `추천`, `NEW`)** + 서브 설명 + 우측 액션 **`Badge` (`보기`, `다운로드`, `방문`, `읽기`)** 및 Chevron 화살표
    - 링크 클릭 시 새 탭(`target="_blank"`)으로 안전하게 오픈
 4. **푸터 영역**:
    - TDS `caption` 스타일의 저작권 문구 및 로컬스토리지 연동 표기

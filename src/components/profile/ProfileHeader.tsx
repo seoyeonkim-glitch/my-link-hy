@@ -1,72 +1,60 @@
 "use client";
 
+import { ArrowUpRight } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export interface ProfileHeaderProps {
   displayName: string;
-  username: string;
   bio: string;
   avatarUrl: string;
-  tags: string[];
+  onShare: () => void;
 }
 
 export function ProfileHeader({
   displayName,
-  username,
   bio,
   avatarUrl,
-  tags,
+  onShare,
 }: ProfileHeaderProps) {
   return (
-    <section
-      aria-label="프로필 정보"
-      className="flex flex-col items-center text-center px-6 pt-10 pb-7"
-    >
-      {/* 아바타 + 실시간 온라인 상태 점 */}
-      <div className="relative w-20 h-20 mb-4">
-        <Avatar className="w-20 h-20">
-          <AvatarImage
-            src={avatarUrl}
-            alt={`${displayName} 프로필 사진`}
-            fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
-          />
-        </Avatar>
-        <span
-          aria-label="온라인"
-          className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full bg-[#34C759] border-[2.5px] border-white"
-        />
+    <header aria-label="프로필 정보" className="px-6 pt-6 pb-4">
+      {/* 상단 바: 좌측 MyLink 로고 + 우측 공유 아이콘 버튼 */}
+      <div className="flex items-center justify-between mb-5">
+        <span className="text-[16px] font-extrabold tracking-[-0.02em] text-[#191F28]">
+          MyLink
+        </span>
+        <Button
+          type="button"
+          variant="iconCircle"
+          size="iconSm"
+          onClick={onShare}
+          aria-label="프로필 공유하기"
+          title="프로필 링크 공유하기"
+        >
+          <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+        </Button>
       </div>
 
-      <h1 className="text-[22px] font-bold leading-[1.3] tracking-[-0.015em] text-[#191F28] mb-1">
-        {displayName}
-      </h1>
-      <p className="text-[13px] font-medium text-[#8B95A1] mb-3.5">
-        @{username}
-      </p>
-      <p className="text-[15px] font-normal leading-[1.6] tracking-[-0.005em] text-[#4E5968] mb-5 break-keep">
-        {bio}
-      </p>
+      {/* 중앙 아바타 + 이름 + 한 줄 소개 */}
+      <div className="flex flex-col items-center text-center">
+        <div className="relative mb-3.5 rounded-full p-1 bg-gradient-to-tr from-[#E8F3FF] via-[#F2F4F6] to-[#E8F3FF] border border-[#E5E8EB]/80">
+          <Avatar className="w-[82px] h-[82px]">
+            <AvatarImage
+              src={avatarUrl}
+              alt={`${displayName} 프로필 사진`}
+              fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
+            />
+          </Avatar>
+        </div>
 
-      {/* 관심사/역할 태그 칩 (shadcn/ui Badge × TDS Chip) */}
-      <div
-        role="list"
-        aria-label="관심사"
-        className="flex flex-wrap gap-1.5 justify-center"
-      >
-        {tags.map((tag) => {
-          const isBrandTag = tag.includes("Next.js");
-          return (
-            <Badge
-              key={tag}
-              role="listitem"
-              variant={isBrandTag ? "brand" : "default"}
-            >
-              {tag}
-            </Badge>
-          );
-        })}
+        <h1 className="text-[20px] font-bold leading-[1.3] tracking-[-0.015em] text-[#191F28] mb-1.5">
+          {displayName}
+        </h1>
+        <p className="text-[13px] font-normal leading-[1.5] tracking-[-0.005em] text-[#6B7684] break-keep">
+          {bio}
+        </p>
       </div>
-    </section>
+    </header>
   );
 }
