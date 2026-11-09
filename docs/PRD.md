@@ -72,17 +72,20 @@
 | **`Card`** | `@/components/ui/card.tsx` | • **컨테이너**: `bg-white rounded-[24px] border-none shadow-none overflow-hidden`<br>• **list-row 항목**: `hover:bg-[#F2F4F6] rounded-[16px] transition-colors p-3.5 flex items-center gap-[14px]` |
 | **`Badge`** | `@/components/ui/badge.tsx` | • **default**: `bg-[#F2F4F6] text-[#4E5968] rounded-full h-[30px] px-3 font-semibold text-[13px]`<br>• **brand**: `bg-[#E8F3FF] text-[#3182F6] rounded-full h-[30px] px-3 font-semibold text-[13px]` |
 | **`Avatar`** | `@/components/ui/avatar.tsx` | • `80x80px` 원형 아바타 (`rounded-full bg-[#F2F4F6]`) 및 이미지 로드 실패 시 `fallbackSrc` 자동 대체 |
+| **`Dialog`** | `@/components/ui/dialog.tsx` | • 모달 오버레이(`backdrop-blur`) 및 `24px` 라운드 화이트 다이얼로그 컨테이너 (`Dialog`, `DialogContent`, `DialogHeader`, `DialogTitle`, `DialogFooter`) |
+| **`Input` / `Label`** | `@/components/ui/input.tsx`<br>`@/components/ui/label.tsx` | • TDS `12px` 라운드 인풋(`h-[44px] bg-[#F2F4F6]/70 focus:border-[#3182F6]`) 및 폼 레이블 |
 | **`Separator`** | `@/components/ui/separator.tsx` | • TDS 표준 구분선: `bg-[#E5E8EB] h-[1px] w-full my-0` |
-| **`Toast`** | `@/components/ui/toast.tsx` | • 이메일/링크 복사 시 피드백: "이메일 복사됐어요 ✓" 토스트 알림 |
+| **`Toast`** | `@/components/ui/toast.tsx` | • 이메일/링크 복사 및 링크 추가 시 피드백 토스트 알림 |
 
 ### 2.4 shadcn/ui 기반 재사용 도메인 컴포넌트 (`src/components/profile/`)
 
 | 컴포넌트 | 파일 경로 | 구성 및 역할 |
 |---|---|---|
-| **`ProfileHeader`** | `@/components/profile/ProfileHeader.tsx` | • `Avatar`, `Badge`를 조합하여 아바타, 실시간 온라인 인디케이터, 이름/핸들/소개글, 관심사 태그 칩 렌더링 |
-| **`ProfileActions`** | `@/components/profile/ProfileActions.tsx` | • `Button`(`default`, `secondary`)을 조합하여 이메일 복사 Primary CTA 및 GitHub 방문 버튼 렌더링 |
-| **`LinkCardItem`** | `@/components/profile/LinkCardItem.tsx` | • `CardListRow`, `CardTitle`, `CardDescription`을 조합하여 개별 링크 아이템 렌더링 |
-| **`LinkListSection`** | `@/components/profile/LinkListSection.tsx` | • 활성 링크 목록(`LinkCardItem`)과 프로필 공유하기 로우를 묶어 렌더링 |
+| **`ProfileHeader`** | `@/components/profile/ProfileHeader.tsx` | • `Avatar`, `Button`을 조합하여 상단 `MyLink` 바, 원형 아바타, 이름/소개글 렌더링 |
+| **`ProfileActions`** | `@/components/profile/ProfileActions.tsx` | • `Button`(`iconCircle`)을 조합하여 소셜 바로가기 및 이메일 복사 원형 아이콘 바 렌더링 |
+| **`LinkCardItem`** | `@/components/profile/LinkCardItem.tsx` | • `CardListRow`, `CardTitle`, `CardDescription`, `Badge`를 조합하여 개별 링크 카드 렌더링 |
+| **`LinkListSection`** | `@/components/profile/LinkListSection.tsx` | • 카테고리별(`🚀 주요 프로젝트`, `📚 기술 & 블로그`) 활성 링크 카드 목록 렌더링 |
+| **`AddLinkDialog`** | `@/components/profile/AddLinkDialog.tsx` | • `Dialog`, `Input`, `Label`, `Badge`, `Button`을 조합하여 로컬 상태(및 `localStorage`)에 새 링크를 추가하는 모달 폼 |
 
 ---
 

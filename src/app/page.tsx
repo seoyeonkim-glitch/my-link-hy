@@ -6,14 +6,21 @@ import { Toast } from "@/components/ui/toast";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileActions } from "@/components/profile/ProfileActions";
 import { LinkListSection } from "@/components/profile/LinkListSection";
+import { AddLinkDialog } from "@/components/profile/AddLinkDialog";
 import { DEFAULT_PROFILE_DATA, STORAGE_KEY } from "@/constants";
 import type { LinkItem, MyLinkProfileData } from "@/types";
 
 export default function HomePage() {
   const [profile, setProfile] = useState<MyLinkProfileData>(DEFAULT_PROFILE_DATA);
   const [isMounted, setIsMounted] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [shared, setShared] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === message ? null : prev));
+    }, 2000);
+  };
 
   // [FR-01] 로컬스토리지 연동 및 최초 접속 시 자동 시딩(Auto-Seeding)
   useEffect(() => {
@@ -52,8 +59,7 @@ export default function HomePage() {
   const handleCopyEmail = () => {
     const email = profile.socialLinks.email ?? "seoyeonkim@hanyang.ac.kr";
     navigator.clipboard.writeText(email);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    showToast("이메일 복사됐어요 ✓");
   };
 
   const handleShare = () => {
@@ -64,9 +70,52 @@ export default function HomePage() {
       });
     } else if (typeof window !== "undefined") {
       navigator.clipboard.writeText(window.location.href);
-      setShared(true);
-      setTimeout(() => setShared(false), 2000);
+      showToast("링크 복사됐어요 ✓");
     }
+  };
+
+  // [5.2-1] 링크 추가 시나리오: 로컬 상태(및 로컬스토리지)에 즉시 추가
+  const handleAddLink = (
+    newLinkInput: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
+  ) => {
+    const now = new Date().toISOString();
+    const newId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : `link-${Date.now()}`;
+
+    setProfile((prev) => {
+      const nextOrder =
+        prev.links.reduce((max, item) => Math.max(max, item.order ?? 0), 0) + 1;
+
+      const createdLink: LinkItem = {
+        ...newLinkInput,
+        id: newId,
+        userId: "user_seoyeon_01",
+        order: nextOrder,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const updatedProfile: MyLinkProfileData = {
+        ...prev,
+        links: [...prev.links, createdLink],
+        updatedAt: now,
+      };
+
+      try {
+        window.localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(updatedProfile)
+        );
+      } catch {
+        // 로컬스토리지 쓰기 실패 시 메모리 상태만 유지
+      }
+
+      return updatedProfile;
+    });
+
+    showToast("새 링크가 추가됐어요 ✓");
   };
 
   // 활성화(isActive: true)된 링크를 order 순으로 정렬
@@ -94,6 +143,8 @@ export default function HomePage() {
           />
 
           <LinkListSection links={activeLinks} />
+
+          <AddLinkDialog onAddLink={handleAddLink} />
         </main>
       </Card>
 
@@ -108,9 +159,7 @@ export default function HomePage() {
       </footer>
 
       {/* ── 토스트 피드백 (shadcn/ui Toast) ── */}
-      <Toast visible={copied || shared}>
-        {copied ? "이메일 복사됐어요 ✓" : "링크 복사됐어요 ✓"}
-      </Toast>
+      <Toast visible={Boolean(toastMessage)}>{toastMessage}</Toast>
     </div>
   );
 }
