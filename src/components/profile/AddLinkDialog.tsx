@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +25,41 @@ export interface AddLinkDialogProps {
     newLink: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
   ) => void;
 }
+
+const addLinkSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "링크 제목을 입력해 주세요.")
+    .max(40, "제목은 40자 이내로 입력해 주세요."),
+  url: z
+    .string()
+    .trim()
+    .min(1, "이동할 URL을 입력해 주세요.")
+    .refine(
+      (value) => {
+        try {
+          const parsed = new URL(value);
+          return (
+            (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+            parsed.hostname.includes(".")
+          );
+        } catch {
+          return false;
+        }
+      },
+      {
+        message: "올바른 URL 형식을 입력해 주세요. (예: https://example.com)",
+      }
+    ),
+  description: z
+    .string()
+    .trim()
+    .max(80, "설명은 80자 이내로 입력해 주세요.")
+    .optional(),
+});
+
+type AddLinkFormValues = z.infer<typeof addLinkSchema>;
 
 const CATEGORY_OPTIONS: {
   value: LinkCategory;
@@ -55,48 +93,42 @@ const BADGE_OPTIONS: {
 
 export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
   const [open, setOpen] = useState(false);
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
-  const [description, setDescription] = useState("");
   const [category, setCategory] = useState<LinkCategory>("PROJECT");
   const [badgeType, setBadgeType] = useState<LinkBadgeVariant | "none">("new");
-  const [errorMessage, setErrorMessage] = useState("");
 
-  const resetForm = () => {
-    setTitle("");
-    setUrl("");
-    setDescription("");
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<AddLinkFormValues>({
+    resolver: zodResolver(addLinkSchema),
+    defaultValues: {
+      title: "",
+      url: "",
+      description: "",
+    },
+    mode: "onTouched",
+  });
+
+  const resetAll = () => {
+    reset({
+      title: "",
+      url: "",
+      description: "",
+    });
     setCategory("PROJECT");
     setBadgeType("new");
-    setErrorMessage("");
   };
 
   const handleOpenChange = (nextOpen: boolean) => {
     setOpen(nextOpen);
     if (!nextOpen) {
-      resetForm();
+      resetAll();
     }
   };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const trimmedTitle = title.trim();
-    const trimmedUrl = url.trim();
-    const trimmedDesc = description.trim();
-
-    if (!trimmedTitle || !trimmedUrl) {
-      setErrorMessage("제목과 이동할 URL을 모두 입력해 주세요.");
-      return;
-    }
-
-    const normalizedUrl =
-      trimmedUrl.startsWith("http://") ||
-      trimmedUrl.startsWith("https://") ||
-      trimmedUrl.startsWith("mailto:")
-        ? trimmedUrl
-        : `https://${trimmedUrl}`;
-
+  const onSubmit = (values: AddLinkFormValues) => {
     const selectedCategory =
       CATEGORY_OPTIONS.find((item) => item.value === category) ??
       CATEGORY_OPTIONS[0];
@@ -115,9 +147,9 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
           };
 
     onAddLink({
-      title: trimmedTitle,
-      url: normalizedUrl,
-      description: trimmedDesc || undefined,
+      title: values.title,
+      url: values.url,
+      description: values.description || undefined,
       category: selectedCategory.value,
       icon: selectedCategory.icon,
       badge: badgeConfig,
@@ -126,7 +158,7 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
       clickCount: 0,
     });
 
-    resetForm();
+    resetAll();
     setOpen(false);
   };
 
@@ -151,7 +183,11 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+            className="flex flex-col gap-3.5"
+          >
             {/* 카테고리 선택 */}
             <div className="flex flex-col gap-1.5">
               <Label>카테고리</Label>
@@ -184,12 +220,18 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
                 id="dialog-link-title"
                 type="text"
                 placeholder="예: 사이드 프로젝트 데모"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  if (errorMessage) setErrorMessage("");
-                }}
+                aria-invalid={Boolean(errors.title)}
+                className={cn(
+                  errors.title &&
+                    "border-[#F04452] focus-visible:border-[#F04452] focus-visible:ring-[#F04452]/15"
+                )}
+                {...register("title")}
               />
+              {errors.title && (
+                <p role="alert" className="text-[12px] font-medium text-[#F04452]">
+                  {errors.title.message}
+                </p>
+              )}
             </div>
 
             {/* URL 입력 */}
@@ -197,14 +239,20 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
               <Label htmlFor="dialog-link-url">URL *</Label>
               <Input
                 id="dialog-link-url"
-                type="text"
+                type="url"
                 placeholder="https://example.com"
-                value={url}
-                onChange={(e) => {
-                  setUrl(e.target.value);
-                  if (errorMessage) setErrorMessage("");
-                }}
+                aria-invalid={Boolean(errors.url)}
+                className={cn(
+                  errors.url &&
+                    "border-[#F04452] focus-visible:border-[#F04452] focus-visible:ring-[#F04452]/15"
+                )}
+                {...register("url")}
               />
+              {errors.url && (
+                <p role="alert" className="text-[12px] font-medium text-[#F04452]">
+                  {errors.url.message}
+                </p>
+              )}
             </div>
 
             {/* 설명 입력 */}
@@ -214,9 +262,18 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
                 id="dialog-link-desc"
                 type="text"
                 placeholder="링크에 대한 간단한 소개를 적어주세요"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                aria-invalid={Boolean(errors.description)}
+                className={cn(
+                  errors.description &&
+                    "border-[#F04452] focus-visible:border-[#F04452] focus-visible:ring-[#F04452]/15"
+                )}
+                {...register("description")}
               />
+              {errors.description && (
+                <p role="alert" className="text-[12px] font-medium text-[#F04452]">
+                  {errors.description.message}
+                </p>
+              )}
             </div>
 
             {/* 강조 배지 선택 */}
@@ -252,12 +309,6 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
                 })}
               </div>
             </div>
-
-            {errorMessage && (
-              <p className="text-[12px] font-medium text-[#F04452]">
-                {errorMessage}
-              </p>
-            )}
 
             <DialogFooter className="grid grid-cols-2 gap-2 pt-2">
               <Button
