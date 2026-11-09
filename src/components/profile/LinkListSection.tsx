@@ -32,12 +32,15 @@ export function LinkListSection({ links }: LinkListSectionProps) {
   ].filter((section) => section.items.length > 0);
 
   return (
-    <section aria-label="링크 목록" className="px-6 pb-7 flex flex-col gap-6">
+    <section
+      aria-label="링크 목록"
+      className="px-4 sm:px-6 pb-6 sm:pb-7 flex flex-col gap-5 sm:gap-6"
+    >
       {sections.map((section) => (
-        <div key={section.id} className="flex flex-col gap-3">
+        <div key={section.id} className="flex flex-col gap-2.5 sm:gap-3">
           {/* 카테고리 헤더 + 우측 카운트 Badge */}
           <div className="flex items-center justify-between">
-            <h2 className="text-[13.5px] font-bold tracking-[-0.01em] text-[#191F28]">
+            <h2 className="text-[13px] sm:text-[13.5px] font-bold tracking-[-0.01em] text-[#191F28]">
               {section.title}
             </h2>
             <Badge variant="count">{section.items.length}</Badge>
@@ -46,7 +49,7 @@ export function LinkListSection({ links }: LinkListSectionProps) {
           <Separator />
 
           {/* 개별 링크 카드 목록 */}
-          <ul role="list" className="flex flex-col gap-2.5 pt-0.5">
+          <ul role="list" className="flex flex-col gap-2 sm:gap-2.5 pt-0.5">
             {section.items.map((link) => (
               <li key={link.id} role="listitem">
                 <LinkCardItem link={link} />

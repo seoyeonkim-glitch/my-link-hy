@@ -17,7 +17,7 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         role="status"
         aria-live="polite"
         className={cn(
-          "fixed bottom-6 left-1/2 z-50 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-[#191F28]/95 px-4 py-2.5 text-[14px] font-semibold text-white shadow-lg transition-all duration-200",
+          "fixed bottom-6 left-1/2 z-50 -translate-x-1/2 max-w-[90vw] whitespace-nowrap inline-flex items-center gap-2 rounded-full bg-[#191F28]/95 px-4 py-2.5 text-[13px] sm:text-[14px] font-semibold text-white shadow-lg transition-all duration-200",
           className
         )}
         {...props}

@@ -75,7 +75,7 @@ export default function HomePage() {
     .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F5F7] px-4 py-10">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
       {/* ── 메인 프로필 카드 (shadcn/ui Card × TDS 재사용 컴포넌트 조합) ── */}
       <Card className="w-full max-w-[420px]">
         <main role="main">
@@ -98,11 +98,11 @@ export default function HomePage() {
       </Card>
 
       {/* ── 푸터 영역 ── */}
-      <footer className="mt-6 flex flex-col items-center gap-0.5">
-        <p className="text-[12.5px] font-medium text-[#8B95A1]">
+      <footer className="mt-5 sm:mt-6 flex flex-col items-center gap-0.5">
+        <p className="text-[12px] sm:text-[12.5px] font-medium text-[#8B95A1]">
           © 2026 {profile.displayName}
         </p>
-        <p className="text-[11.5px] font-normal text-[#B0B8C1]">
+        <p className="text-[11px] sm:text-[11.5px] font-normal text-[#B0B8C1]">
           {isMounted ? "Synced with LocalStorage" : "Made with Next.js & shadcn/ui"}
         </p>
       </footer>

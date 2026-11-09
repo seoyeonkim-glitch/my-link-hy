@@ -83,15 +83,15 @@ export function LinkCardItem({ link }: LinkCardItemProps) {
       <CardListRow>
         <span
           className={cn(
-            "flex items-center justify-center w-[42px] h-[42px] rounded-[12px] shrink-0 shadow-2xs",
+            "flex items-center justify-center w-10 h-10 sm:w-[42px] sm:h-[42px] rounded-[12px] shrink-0 shadow-2xs",
             badgeClassName
           )}
         >
           <Icon className="w-5 h-5" aria-hidden="true" />
         </span>
 
-        <div className="flex flex-col gap-1 flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex flex-col gap-0.5 sm:gap-1 flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-1.5 min-w-0">
             <CardTitle>{link.title}</CardTitle>
             {link.badge && (
               <Badge variant={link.badge.variant}>{link.badge.text}</Badge>
@@ -102,7 +102,7 @@ export function LinkCardItem({ link }: LinkCardItemProps) {
           )}
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
           {link.actionLabel && (
             <Badge variant="action">{link.actionLabel}</Badge>
           )}

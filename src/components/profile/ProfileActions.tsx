@@ -20,7 +20,7 @@ export function ProfileActions({
   return (
     <nav
       aria-label="소셜 및 빠른 액션"
-      className="flex items-center justify-center gap-3 px-6 pb-6"
+      className="flex items-center justify-center gap-2.5 sm:gap-3 px-4 sm:px-6 pb-5 sm:pb-6"
     >
       <Link
         href={blogUrl}
