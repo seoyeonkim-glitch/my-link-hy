@@ -57,11 +57,16 @@ export function ProfileHeader({
 }: ProfileHeaderProps) {
   return (
     <header aria-label="프로필 정보" className="px-4 sm:px-6 pt-5 sm:pt-6 pb-4">
-      {/* 상단 바: 좌측 MyLink 로고 + 우측 구글 로그인/로그아웃 및 공유 버튼 */}
+      {/* 상단 바: 좌측 MyLink 로고 & 마이페이지 배지 + 우측 구글 로그인/로그아웃 및 공유 버튼 */}
       <div className="flex items-center justify-between mb-4 sm:mb-5">
-        <span className="text-[15px] sm:text-[16px] font-extrabold tracking-[-0.02em] text-[#191F28]">
-          MyLink
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-[15px] sm:text-[16px] font-extrabold tracking-[-0.02em] text-[#191F28]">
+            MyLink
+          </span>
+          <span className="inline-flex items-center rounded-full bg-[#E8F3FF] px-2.5 py-0.5 text-[11px] font-semibold text-[#3182F6]">
+            마이페이지
+          </span>
+        </div>
 
         <div className="flex items-center gap-2">
           {isLoggedIn ? (

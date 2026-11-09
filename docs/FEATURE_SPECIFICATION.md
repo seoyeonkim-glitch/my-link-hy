@@ -23,16 +23,16 @@
 
 ## 2. 화면 및 페이지 구조 (Page & View Flow)
 
-단일 웹 애플리케이션 내에서 **[관리자 대시보드(편집 모드)]**와 **[공개 프로필(최종 사용자 뷰)]**의 2가지 핵심 뷰를 제공합니다.
+단일 웹 애플리케이션 내에서 **[마이페이지(편집 모드)]**와 **[공개 프로필(최종 사용자 뷰)]**의 2가지 핵심 뷰를 제공합니다.
 
 ```mermaid
 flowchart TD
     AppRoot["/ (마이링크 메인)"] --> Router{"뷰 모드 분기"}
     
-    Router --> DashboardView["[대시보드 / 편집 뷰]<br>/dashboard 또는 상단 토글"]
+    Router --> MyPageView["[마이페이지 / 편집 뷰]<br>/mypage 또는 상단 토글"]
     Router --> PublicProfileView["[공개 프로필 뷰]<br>/p/:username 또는 미리보기 모드"]
     
-    subgraph DashboardViewStructure ["대시보드 화면 구성 (데스크톱 2열)"]
+    subgraph MyPageViewStructure ["마이페이지 화면 구성 (데스크톱 2열)"]
         TabLinks["1. 링크 관리 탭 (추가/수정/삭제/DnD/토글)"]
         TabAppearance["2. 디자인/테마 탭 (프리셋/배경/버튼/폰트)"]
         TabAnalytics["3. 클릭 통계 탭 (조회수/클릭수/CTR)"]
@@ -47,7 +47,7 @@ flowchart TD
         StorageAnalytics["mylink_analytics"]
     end
     
-    DashboardViewStructure <--> LocalStorageEngine
+    MyPageViewStructure <--> LocalStorageEngine
     PublicProfileView <--> LocalStorageEngine
 ```
 
@@ -156,7 +156,7 @@ interface MyLinkAnalytics {
 |---|---|---|
 | **FR-04-01** | 페이지 조회수(Views) | 공개 프로필 화면이 열릴 때마다 `totalViews` 카운터 1 증가 |
 | **FR-04-02** | 링크 클릭수(Clicks) | 각 링크 버튼을 클릭할 때마다 해당 링크의 `clickCount` 및 전체 `totalClicks` 증가 |
-| **FR-04-03** | 클릭률(CTR) 지표 | `(총 클릭 수 / 총 조회수) * 100` 수치를 %로 대시보드 통계 카드에 표시 |
+| **FR-04-03** | 클릭률(CTR) 지표 | `(총 클릭 수 / 총 조회수) * 100` 수치를 %로 마이페이지 통계 카드에 표시 |
 | **FR-04-04** | 링크별 개별 클릭 뱃지 | 링크 관리 목록 각 카드 우측에 `12회 클릭 (CTR 15%)` 뱃지 실시간 표시 |
 | **FR-04-05** | 통계 초기화 | 통계 탭에서 '통계 데이터 리셋' 버튼 제공 |
 
@@ -189,7 +189,7 @@ interface MyLinkAnalytics {
    - `useLocalStorage` 훅 및 스키마 인터페이스 정의
    - 기본 샘플 데이터(기본 프로필, 3개 링크, 토스 테마) 세팅
 
-2. **Step 2: 대시보드 2열 레이아웃 & 실시간 스마트폰 프리뷰 컴포넌트**
+2. **Step 2: 마이페이지 2열 레이아웃 & 실시간 스마트폰 프리뷰 컴포넌트**
    - 데스크톱: 좌측 편집 패널 + 우측 스마트폰 디바이스 목업 뷰어
    - 모바일: 반응형 탭 및 바텀시트 프리뷰
 

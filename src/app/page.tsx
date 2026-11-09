@@ -367,7 +367,7 @@ export default function HomePage() {
               </h1>
 
               <p className="text-[13.5px] sm:text-[14px] font-normal leading-[1.6] text-[#4E5968] break-keep mb-5 px-2">
-                구글 계정으로 로그인하면 나만의 프로필과 링크 목록을 직접 추가하고 관리할 수 있어요.
+                구글 계정으로 로그인하면 나만의 마이페이지에서 프로필과 링크 목록을 직접 추가하고 관리할 수 있어요.
               </p>
 
               {/* 로그인 후 이용 가능한 기능 안내 카드 */}
