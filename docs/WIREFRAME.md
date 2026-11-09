@@ -61,7 +61,7 @@
 │   │                     │  ( ᵔ ᵕ ᵔ ) │                     │   │  ← 구글 프로필 아바타 (user.photoURL)
 │   │                     ╰───────●─╯                     │   │     (+ 초록색 온라인 뱃지)
 │   │                                                     │   │
-│   │                       김 서 연                      │   │  ← 유저 이름 (user.displayName)
+│   │                     seoyeonkim                      │   │  ← 유저 이름 (이메일 앞부분: email.split('@')[0])
 │   │               seoyeonkim@hanyang.ac.kr              │   │  ← 유저 이메일 (user.email)
 │   │       "사용자 경험을 설계하고 정교하게 구현해요."   │   │  ← 한 줄 소개글 (bio)
 │   │                                                     │   │
@@ -98,7 +98,7 @@
 | **배경** | 전체 캔버스 | `background: #F4F5F7`, 중앙 정렬 | 데스크톱 접속 시 가로 최대 420px 카드 형태로 중앙 플로팅 |
 | **컨테이너** | 메인 카드 | `background: #FFFFFF`, `border-radius: 24px` | 평면 표면, 깔끔한 화이트 카드 |
 | **상단 헤더 바** | `ProfileHeader` 상단 | • 좌측: `MyLink` 로고<br>• 우측: `Google 로그인` / `로그아웃` 버튼 + 공유 아이콘 버튼 | • 비로그인 시 `signInWithPopup(auth, googleProvider)` 실행<br>• 로그인 시 `signOut(auth)` 실행 |
-| **유저 프로필** | `ProfileHeader` 본문 | • 아바타 (`user.photoURL`) + 우하단 초록색 온라인 뱃지<br>• 이름 (`user.displayName`)<br>• 이메일 (`user.email`) 및 소개글 (`bio`) | • 로그인 완료 시 Firestore `users/{user.uid}` 유저 정보를 동기화하여 화면에 표시 |
+| **유저 프로필** | `ProfileHeader` 본문 | • 아바타 (`user.photoURL`) + 우하단 초록색 온라인 뱃지<br>• 이름 (`displayName`: 이메일 `@` 앞부분)<br>• 이메일 (`user.email`) 및 소개글 (`bio`) | • 로그인 완료 시 Firestore `users/{user.uid}` 유저 정보를 동기화하여 화면에 표시 |
 | **비로그인 안내** | 로그인 안내 섹션 | • 자물쇠 아이콘 뱃지 (`#E8F3FF` 배경)<br>• `"로그인 이후에 사용할 수 있어요"` 타이틀 및 안내 문구<br>• `Google 계정으로 시작하기` Primary CTA 버튼 | • 비로그인 상태(`!user`)일 때 노출되며 클릭 시 구글 로그인 팝업 호출 |
 | **링크 목록** | `LinkListSection` | • Firestore `users/{user.uid}/links` 경로의 문서를 `createdAt` 최신순(`desc`) 조회<br>• 각 카드별 인라인 수정 및 삭제 모달 제공 | • 로그인한 사용자 본인의 링크만 조회·추가·수정·삭제 가능 |
 | **푸터 (Footer)** | 안내 영역 | 상단 마진, 12px 저작권 카피 + Firestore 동기화 안내 | 로그인 여부에 따라 유저 이름 또는 기본 서비스명 표시 |

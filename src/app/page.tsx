@@ -95,12 +95,19 @@ export default function HomePage() {
     }
   }, []);
 
+  // 이메일 주소에서 '@' 앞부분(아이디)을 추출하여 displayName으로 사용
+  const getEmailPrefix = (email?: string | null) =>
+    email ? email.split("@")[0] : "";
+
   // Firestore(users/{user.uid})의 유저 정보를 동기화하고 화면에 표시할 유저 데이터 로드
   const syncAndFetchUserInfo = useCallback(async (currentUser: User) => {
+    const emailPrefix = getEmailPrefix(currentUser.email);
     const fallbackInfo: FirestoreUserInfo = {
       uid: currentUser.uid,
       displayName:
-        currentUser.displayName || DEFAULT_PROFILE_DATA.displayName,
+        emailPrefix ||
+        currentUser.displayName ||
+        DEFAULT_PROFILE_DATA.displayName,
       email: currentUser.email || "",
       photoURL: currentUser.photoURL || DEFAULT_PROFILE_DATA.avatarUrl,
       bio: DEFAULT_PROFILE_DATA.bio,
@@ -110,14 +117,16 @@ export default function HomePage() {
       const userDocRef = doc(db, "users", currentUser.uid);
       const userSnap = await getDoc(userDocRef);
       const existingData = userSnap.exists() ? userSnap.data() : null;
+      const resolvedEmail = currentUser.email || existingData?.email || "";
 
       const mergedInfo: FirestoreUserInfo = {
         uid: currentUser.uid,
         displayName:
+          getEmailPrefix(resolvedEmail) ||
           currentUser.displayName ||
           existingData?.displayName ||
           fallbackInfo.displayName,
-        email: currentUser.email || existingData?.email || "",
+        email: resolvedEmail,
         photoURL:
           currentUser.photoURL ||
           existingData?.photoURL ||
@@ -290,11 +299,12 @@ export default function HomePage() {
     }
   };
 
+  const displayUserEmail = userInfo?.email || user?.email || null;
   const displayUserName =
+    getEmailPrefix(displayUserEmail) ||
     userInfo?.displayName ||
     user?.displayName ||
     DEFAULT_PROFILE_DATA.displayName;
-  const displayUserEmail = userInfo?.email || user?.email || null;
   const displayUserAvatar =
     userInfo?.photoURL || user?.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
   const displayUserBio = userInfo?.bio || DEFAULT_PROFILE_DATA.bio;
