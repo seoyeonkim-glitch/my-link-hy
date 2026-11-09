@@ -32,6 +32,7 @@ export default function HomePage() {
 
   // Firestore(users/anonymous/links)에서 createdAt 기준 최신순(desc)으로 링크 불러오기
   const fetchLinks = useCallback(async () => {
+    setIsLoading(true);
     try {
       const linksRef = collection(db, "users", "anonymous", "links");
       const q = query(linksRef, orderBy("createdAt", "desc"));

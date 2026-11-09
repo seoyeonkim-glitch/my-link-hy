@@ -1,5 +1,6 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { LinkCardItem } from "@/components/profile/LinkCardItem";
@@ -19,25 +20,39 @@ export function LinkListSection({
       aria-label="링크 목록"
       className="px-4 sm:px-6 pb-6 sm:pb-7 flex flex-col gap-3"
     >
-      {/* 헤더 + 우측 카운트 Badge */}
+      {/* 헤더 + 우측 로딩 표시 및 카운트 Badge */}
       <div className="flex items-center justify-between">
-        <h2 className="text-[13px] sm:text-[13.5px] font-bold tracking-[-0.01em] text-[#191F28]">
-          🔗 등록된 링크
-        </h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-[13px] sm:text-[13.5px] font-bold tracking-[-0.01em] text-[#191F28]">
+            🔗 등록된 링크
+          </h2>
+          {isLoading && (
+            <span className="inline-flex items-center gap-1 text-[11.5px] font-medium text-[#3182F6]">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+              갱신 중...
+            </span>
+          )}
+        </div>
         <Badge variant="count">{links.length}</Badge>
       </div>
 
       <Separator />
 
-      {/* 로딩 중 스켈레톤 / 빈 목록 안내 / 최신순 링크 카드 목록 */}
+      {/* 로딩 중 표시 (초기 로드 및 목록 갱신 시) */}
       {isLoading ? (
-        <div className="flex flex-col gap-2.5 pt-1" aria-busy="true">
-          {[1, 2].map((item) => (
-            <div
-              key={item}
-              className="h-[72px] w-full rounded-[16px] bg-[#F2F4F6] animate-pulse"
-            />
-          ))}
+        <div
+          className="flex flex-col items-center justify-center gap-2.5 py-8 rounded-[16px] bg-[#F9FAFB] border border-[#E5E8EB]/80"
+          role="status"
+          aria-live="polite"
+          aria-busy="true"
+        >
+          <Loader2
+            className="w-6 h-6 text-[#3182F6] animate-spin"
+            aria-hidden="true"
+          />
+          <p className="text-[13px] font-medium text-[#6B7684]">
+            링크 목록을 불러오고 있어요...
+          </p>
         </div>
       ) : links.length === 0 ? (
         <div className="py-8 text-center rounded-[16px] bg-[#F9FAFB] border border-dashed border-[#E5E8EB]">

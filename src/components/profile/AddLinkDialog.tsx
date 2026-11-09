@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -325,7 +325,17 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
                 disabled={isSubmitting}
                 className="h-[46px] rounded-[12px] text-[14px] font-bold"
               >
-                {isSubmitting ? "저장 중..." : "추가하기"}
+                {isSubmitting ? (
+                  <>
+                    <Loader2
+                      className="w-4 h-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                    저장 중...
+                  </>
+                ) : (
+                  "추가하기"
+                )}
               </Button>
             </DialogFooter>
           </form>
