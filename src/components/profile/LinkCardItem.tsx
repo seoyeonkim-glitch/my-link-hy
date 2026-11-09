@@ -310,11 +310,11 @@ export function LinkCardItem({
         <div className="flex items-center gap-1.5 shrink-0">
           <Button
             type="button"
-            variant="outline"
+            variant="default"
             size="sm"
             onClick={handleStartEdit}
             aria-label={`${link.title} 수정`}
-            className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold text-[#4E5968] hover:text-[#3182F6] hover:border-[#3182F6]/40"
+            className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold"
           >
             <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
             수정
