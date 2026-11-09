@@ -254,13 +254,10 @@ export function LinkCardItem({
               className="h-9 px-3.5 rounded-[10px] text-[13px] font-bold"
             >
               {isSubmitting ? (
-                <>
-                  <Loader2
-                    className="w-3.5 h-3.5 animate-spin"
-                    aria-hidden="true"
-                  />
-                  저장 중...
-                </>
+                <Loader2
+                  className="w-4 h-4 animate-spin"
+                  aria-hidden="true"
+                />
               ) : (
                 <>
                   <Check className="w-3.5 h-3.5" aria-hidden="true" />

@@ -80,10 +80,7 @@ export function DeleteLinkDialog({
             className="h-[46px] rounded-[12px] text-[14px] font-bold"
           >
             {isDeleting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-                삭제 중...
-              </>
+              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
             ) : (
               "삭제하기"
             )}
