@@ -321,11 +321,11 @@ export function LinkCardItem({
           </Button>
           <Button
             type="button"
-            variant="outline"
+            variant="destructive"
             size="sm"
             onClick={() => setIsDeleteDialogOpen(true)}
             aria-label={`${link.title} 삭제`}
-            className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold text-[#F04452] border-[#F04452]/30 hover:bg-[#FFF0F1] hover:border-[#F04452]/50"
+            className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold"
           >
             <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
             삭제
