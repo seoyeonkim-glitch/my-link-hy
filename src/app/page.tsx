@@ -1,18 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Toast } from "@/components/ui/toast";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileActions } from "@/components/profile/ProfileActions";
 import { LinkListSection } from "@/components/profile/LinkListSection";
 import { AddLinkDialog } from "@/components/profile/AddLinkDialog";
-import { DEFAULT_PROFILE_DATA, STORAGE_KEY } from "@/constants";
+import { DEFAULT_PROFILE_DATA } from "@/constants";
 import type { LinkItem, MyLinkProfileData } from "@/types";
 
 export default function HomePage() {
   const [profile, setProfile] = useState<MyLinkProfileData>(DEFAULT_PROFILE_DATA);
-  const [isMounted, setIsMounted] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (message: string) => {
@@ -21,40 +20,6 @@ export default function HomePage() {
       setToastMessage((prev) => (prev === message ? null : prev));
     }, 2000);
   };
-
-  // [FR-01] 로컬스토리지 연동 및 최초 접속 시 자동 시딩(Auto-Seeding)
-  useEffect(() => {
-    try {
-      const savedData = window.localStorage.getItem(STORAGE_KEY);
-      if (savedData) {
-        const parsed = JSON.parse(savedData) as MyLinkProfileData;
-        const hasUpdatedSchema =
-          parsed &&
-          Array.isArray(parsed.links) &&
-          parsed.links.length > 0 &&
-          Boolean(parsed.links[0]?.actionLabel);
-
-        if (hasUpdatedSchema) {
-          setProfile(parsed);
-        } else {
-          window.localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(DEFAULT_PROFILE_DATA)
-          );
-          setProfile(DEFAULT_PROFILE_DATA);
-        }
-      } else {
-        window.localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify(DEFAULT_PROFILE_DATA)
-        );
-      }
-    } catch {
-      // 로컬스토리지 접근 불가 환경에서는 기본 더미 데이터 유지
-    } finally {
-      setIsMounted(true);
-    }
-  }, []);
 
   const handleCopyEmail = () => {
     const email = profile.socialLinks.email ?? "seoyeonkim@hanyang.ac.kr";
@@ -74,7 +39,7 @@ export default function HomePage() {
     }
   };
 
-  // [5.2-1] 링크 추가 시나리오: 로컬 상태(및 로컬스토리지)에 즉시 추가
+  // 로컬 상태(useState)에만 새 링크 추가 (새로고침 시 초기 더미 데이터로 리셋)
   const handleAddLink = (
     newLinkInput: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
   ) => {
@@ -97,22 +62,11 @@ export default function HomePage() {
         updatedAt: now,
       };
 
-      const updatedProfile: MyLinkProfileData = {
+      return {
         ...prev,
         links: [...prev.links, createdLink],
         updatedAt: now,
       };
-
-      try {
-        window.localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify(updatedProfile)
-        );
-      } catch {
-        // 로컬스토리지 쓰기 실패 시 메모리 상태만 유지
-      }
-
-      return updatedProfile;
     });
 
     showToast("새 링크가 추가됐어요 ✓");
@@ -154,7 +108,7 @@ export default function HomePage() {
           © 2026 {profile.displayName}
         </p>
         <p className="text-[11px] sm:text-[11.5px] font-normal text-[#B0B8C1]">
-          {isMounted ? "Synced with LocalStorage" : "Made with Next.js & shadcn/ui"}
+          Made with Next.js & shadcn/ui
         </p>
       </footer>
 
