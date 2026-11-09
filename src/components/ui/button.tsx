@@ -9,6 +9,8 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-[#3182F6] text-white hover:bg-[#1B64DA] active:opacity-85",
+        destructive:
+          "bg-[#F04452] text-white hover:bg-[#D93845] active:opacity-85",
         secondary:
           "bg-[#F2F4F6] text-[#191F28] hover:bg-[#E5E8EB] active:opacity-85",
         iconCircle:

@@ -4,9 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import {
   addDoc,
   collection,
+  deleteDoc,
+  doc,
   getDocs,
   orderBy,
   query,
+  updateDoc,
 } from "firebase/firestore";
 import { Card } from "@/components/ui/card";
 import { Toast } from "@/components/ui/toast";
@@ -115,6 +118,40 @@ export default function HomePage() {
     }
   };
 
+  // 링크 수정 시 Firestore(users/anonymous/links/{id}) 업데이트 후 목록 갱신
+  const handleUpdateLink = async (
+    id: string,
+    updatedValues: { title: string; url: string }
+  ) => {
+    try {
+      const linkDocRef = doc(db, "users", "anonymous", "links", id);
+      await updateDoc(linkDocRef, {
+        title: updatedValues.title,
+        url: updatedValues.url,
+      });
+
+      await fetchLinks();
+      showToast("링크가 수정됐어요 ✓");
+    } catch (error) {
+      console.error("Firestore 링크 수정 실패:", error);
+      showToast("링크 수정에 실패했어요. 다시 시도해 주세요.");
+    }
+  };
+
+  // 링크 삭제 시 Firestore(users/anonymous/links/{id}) 삭제 후 목록 갱신
+  const handleDeleteLink = async (id: string) => {
+    try {
+      const linkDocRef = doc(db, "users", "anonymous", "links", id);
+      await deleteDoc(linkDocRef);
+
+      await fetchLinks();
+      showToast("링크가 삭제됐어요 ✓");
+    } catch (error) {
+      console.error("Firestore 링크 삭제 실패:", error);
+      showToast("링크 삭제에 실패했어요. 다시 시도해 주세요.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
       {/* ── 메인 프로필 카드 (shadcn/ui Card × TDS 재사용 컴포넌트 조합) ── */}
@@ -136,7 +173,12 @@ export default function HomePage() {
 
           <AddLinkDialog onAddLink={handleAddLink} isAdding={isAdding} />
 
-          <LinkListSection links={links} isLoading={isLoading} />
+          <LinkListSection
+            links={links}
+            isLoading={isLoading}
+            onUpdateLink={handleUpdateLink}
+            onDeleteLink={handleDeleteLink}
+          />
         </main>
       </Card>
 

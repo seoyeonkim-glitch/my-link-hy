@@ -9,11 +9,18 @@ import type { LinkItem } from "@/types";
 export interface LinkListSectionProps {
   links: LinkItem[];
   isLoading?: boolean;
+  onUpdateLink: (
+    id: string,
+    updatedValues: { title: string; url: string }
+  ) => Promise<void> | void;
+  onDeleteLink: (id: string) => Promise<void> | void;
 }
 
 export function LinkListSection({
   links,
   isLoading = false,
+  onUpdateLink,
+  onDeleteLink,
 }: LinkListSectionProps) {
   return (
     <section
@@ -67,7 +74,11 @@ export function LinkListSection({
         <ul role="list" className="flex flex-col gap-2 sm:gap-2.5 pt-0.5">
           {links.map((link) => (
             <li key={link.id} role="listitem">
-              <LinkCardItem link={link} />
+              <LinkCardItem
+                link={link}
+                onUpdateLink={onUpdateLink}
+                onDeleteLink={onDeleteLink}
+              />
             </li>
           ))}
         </ul>

@@ -1,21 +1,64 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import {
   BarChart3,
-  ChevronRight,
+  Check,
   FileText,
   Globe,
+  Loader2,
   Mail,
+  Pencil,
+  Trash2,
+  X,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   CardDescription,
   CardListRow,
   CardTitle,
 } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { DeleteLinkDialog } from "@/components/profile/DeleteLinkDialog";
 import { cn } from "@/lib/utils";
 import type { LinkIconType, LinkItem } from "@/types";
+
+// 추가할 때(AddLinkDialog)와 동일한 입력 검증 스키마
+const editLinkSchema = z.object({
+  title: z
+    .string()
+    .trim()
+    .min(1, "링크 제목을 입력해 주세요.")
+    .max(40, "제목은 40자 이내로 입력해 주세요."),
+  url: z
+    .string()
+    .trim()
+    .min(1, "이동할 URL을 입력해 주세요.")
+    .refine(
+      (value) => {
+        try {
+          const parsed = new URL(value);
+          return (
+            (parsed.protocol === "http:" || parsed.protocol === "https:") &&
+            parsed.hostname.includes(".")
+          );
+        } catch {
+          return false;
+        }
+      },
+      {
+        message: "올바른 URL 형식을 입력해 주세요. (예: https://example.com)",
+      }
+    ),
+});
+
+type EditLinkFormValues = z.infer<typeof editLinkSchema>;
 
 function GithubOctocatIcon({ className }: { className?: string }) {
   return (
@@ -68,48 +111,235 @@ function getIconConfig(icon?: LinkIconType, url?: string) {
 
 export interface LinkCardItemProps {
   link: LinkItem;
+  onUpdateLink: (
+    id: string,
+    updatedValues: { title: string; url: string }
+  ) => Promise<void> | void;
+  onDeleteLink: (id: string) => Promise<void> | void;
 }
 
-export function LinkCardItem({ link }: LinkCardItemProps) {
+export function LinkCardItem({
+  link,
+  onUpdateLink,
+  onDeleteLink,
+}: LinkCardItemProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   const { Icon, badgeClassName } = getIconConfig(link.icon, link.url);
   const isExternal = link.url.startsWith("http");
   const subtitle = link.description || link.url;
 
-  return (
-    <Link
-      href={link.url}
-      target={isExternal ? "_blank" : undefined}
-      rel={isExternal ? "noopener noreferrer" : undefined}
-      className="block no-underline"
-    >
-      <CardListRow>
-        <span
-          className={cn(
-            "flex items-center justify-center w-10 h-10 sm:w-[42px] sm:h-[42px] rounded-[12px] shrink-0 shadow-2xs",
-            badgeClassName
-          )}
-        >
-          <Icon className="w-5 h-5" aria-hidden="true" />
-        </span>
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<EditLinkFormValues>({
+    resolver: zodResolver(editLinkSchema),
+    defaultValues: {
+      title: link.title,
+      url: link.url,
+    },
+    mode: "onTouched",
+  });
 
-        <div className="flex flex-col gap-0.5 sm:gap-1 flex-1 min-w-0 overflow-hidden">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <CardTitle>{link.title}</CardTitle>
-            {link.badge && (
-              <Badge variant={link.badge.variant}>{link.badge.text}</Badge>
+  useEffect(() => {
+    reset({
+      title: link.title,
+      url: link.url,
+    });
+  }, [link.title, link.url, reset]);
+
+  const handleStartEdit = () => {
+    reset({
+      title: link.title,
+      url: link.url,
+    });
+    setIsEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    reset({
+      title: link.title,
+      url: link.url,
+    });
+    setIsEditing(false);
+  };
+
+  const onSubmitEdit = async (values: EditLinkFormValues) => {
+    await onUpdateLink(link.id, {
+      title: values.title,
+      url: values.url,
+    });
+    setIsEditing(false);
+  };
+
+  // 인라인 편집 UI 모드
+  if (isEditing) {
+    return (
+      <div className="rounded-[16px] bg-white border-2 border-[#3182F6]/60 p-3.5 sm:p-4 shadow-xs transition-all">
+        <form
+          onSubmit={handleSubmit(onSubmitEdit)}
+          noValidate
+          className="flex flex-col gap-3"
+        >
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`edit-title-${link.id}`}>제목 *</Label>
+            <Input
+              id={`edit-title-${link.id}`}
+              type="text"
+              placeholder="링크 제목을 입력해 주세요"
+              aria-invalid={Boolean(errors.title)}
+              disabled={isSubmitting}
+              className={cn(
+                "h-10 text-[13.5px]",
+                errors.title &&
+                  "border-[#F04452] focus-visible:border-[#F04452] focus-visible:ring-[#F04452]/15"
+              )}
+              {...register("title")}
+            />
+            {errors.title && (
+              <p
+                role="alert"
+                className="text-[12px] font-medium text-[#F04452]"
+              >
+                {errors.title.message}
+              </p>
             )}
           </div>
-          {subtitle && <CardDescription>{subtitle}</CardDescription>}
-        </div>
 
-        <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-          <Badge variant="action">{link.actionLabel ?? "방문"}</Badge>
-          <ChevronRight
-            className="w-3.5 h-3.5 text-[#B0B8C1]"
-            aria-hidden="true"
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={`edit-url-${link.id}`}>URL *</Label>
+            <Input
+              id={`edit-url-${link.id}`}
+              type="url"
+              placeholder="https://example.com"
+              aria-invalid={Boolean(errors.url)}
+              disabled={isSubmitting}
+              className={cn(
+                "h-10 text-[13.5px]",
+                errors.url &&
+                  "border-[#F04452] focus-visible:border-[#F04452] focus-visible:ring-[#F04452]/15"
+              )}
+              {...register("url")}
+            />
+            {errors.url && (
+              <p
+                role="alert"
+                className="text-[12px] font-medium text-[#F04452]"
+              >
+                {errors.url.message}
+              </p>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-1">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={isSubmitting}
+              onClick={handleCancelEdit}
+              className="h-9 px-3.5 rounded-[10px] text-[13px] font-bold"
+            >
+              <X className="w-3.5 h-3.5" aria-hidden="true" />
+              취소
+            </Button>
+            <Button
+              type="submit"
+              variant="default"
+              size="sm"
+              disabled={isSubmitting}
+              className="h-9 px-3.5 rounded-[10px] text-[13px] font-bold"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2
+                    className="w-3.5 h-3.5 animate-spin"
+                    aria-hidden="true"
+                  />
+                  저장 중...
+                </>
+              ) : (
+                <>
+                  <Check className="w-3.5 h-3.5" aria-hidden="true" />
+                  저장
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <CardListRow className="cursor-default active:scale-100">
+        {/* 링크 이동 영역 */}
+        <Link
+          href={link.url}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
+          className="flex items-center gap-3 sm:gap-3.5 flex-1 min-w-0 no-underline group"
+        >
+          <span
+            className={cn(
+              "flex items-center justify-center w-10 h-10 sm:w-[42px] sm:h-[42px] rounded-[12px] shrink-0 shadow-2xs transition-transform group-hover:scale-[1.03]",
+              badgeClassName
+            )}
+          >
+            <Icon className="w-5 h-5" aria-hidden="true" />
+          </span>
+
+          <div className="flex flex-col gap-0.5 sm:gap-1 flex-1 min-w-0 overflow-hidden">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <CardTitle className="group-hover:text-[#3182F6] transition-colors">
+                {link.title}
+              </CardTitle>
+              {link.badge && (
+                <Badge variant={link.badge.variant}>{link.badge.text}</Badge>
+              )}
+            </div>
+            {subtitle && <CardDescription>{subtitle}</CardDescription>}
+          </div>
+        </Link>
+
+        {/* 항상 표시되는 수정 / 삭제 액션 버튼 */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleStartEdit}
+            aria-label={`${link.title} 수정`}
+            className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold text-[#4E5968] hover:text-[#3182F6] hover:border-[#3182F6]/40"
+          >
+            <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
+            수정
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDeleteDialogOpen(true)}
+            aria-label={`${link.title} 삭제`}
+            className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold text-[#F04452] border-[#F04452]/30 hover:bg-[#FFF0F1] hover:border-[#F04452]/50"
+          >
+            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+            삭제
+          </Button>
         </div>
       </CardListRow>
-    </Link>
+
+      {/* 삭제 확인 모달 */}
+      <DeleteLinkDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        linkTitle={link.title}
+        onConfirmDelete={() => onDeleteLink(link.id)}
+      />
+    </>
   );
 }
