@@ -24,6 +24,7 @@ export interface AddLinkDialogProps {
   onAddLink: (
     newLink: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
   ) => Promise<void> | void;
+  isAdding?: boolean;
 }
 
 const addLinkSchema = z.object({
@@ -91,7 +92,10 @@ const BADGE_OPTIONS: {
   { label: "추천", value: "brand" },
 ];
 
-export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
+export function AddLinkDialog({
+  onAddLink,
+  isAdding = false,
+}: AddLinkDialogProps) {
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState<LinkCategory>("PROJECT");
   const [badgeType, setBadgeType] = useState<LinkBadgeVariant | "none">("new");
@@ -146,6 +150,10 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
             variant: badgeType,
           };
 
+    // 다이얼로그를 닫고 메인 버튼에 '추가 중...' 로딩 상태 표시
+    resetAll();
+    setOpen(false);
+
     await onAddLink({
       title: values.title,
       url: values.url,
@@ -157,21 +165,30 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
       isActive: true,
       clickCount: 0,
     });
-
-    resetAll();
-    setOpen(false);
   };
 
+  const isBusy = isAdding || isSubmitting;
+
   return (
-    <div className="px-4 sm:px-6 pb-6">
+    <div className="px-4 sm:px-6 pb-4">
       <Button
         type="button"
         variant="default"
+        disabled={isBusy}
         onClick={() => setOpen(true)}
         className="w-full h-[48px] rounded-[14px] text-[15px] font-bold"
       >
-        <Plus className="w-4 h-4" aria-hidden="true" />
-        새 링크 추가하기
+        {isBusy ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
+            추가 중...
+          </>
+        ) : (
+          <>
+            <Plus className="w-4 h-4" aria-hidden="true" />
+            새 링크 추가하기
+          </>
+        )}
       </Button>
 
       <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -322,16 +339,16 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
               <Button
                 type="submit"
                 variant="default"
-                disabled={isSubmitting}
+                disabled={isBusy}
                 className="h-[46px] rounded-[12px] text-[14px] font-bold"
               >
-                {isSubmitting ? (
+                {isBusy ? (
                   <>
                     <Loader2
                       className="w-4 h-4 animate-spin"
                       aria-hidden="true"
                     />
-                    저장 중...
+                    추가 중...
                   </>
                 ) : (
                   "추가하기"

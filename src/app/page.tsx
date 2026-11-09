@@ -21,6 +21,7 @@ import type { LinkItem } from "@/types";
 export default function HomePage() {
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdding, setIsAdding] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (message: string) => {
@@ -91,20 +92,26 @@ export default function HomePage() {
     newLinkInput: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
   ) => {
     const now = new Date().toISOString();
+    setIsAdding(true);
 
     try {
       const linksRef = collection(db, "users", "anonymous", "links");
-      await addDoc(linksRef, {
-        title: newLinkInput.title,
-        url: newLinkInput.url,
-        createdAt: now,
-      });
+      await Promise.all([
+        addDoc(linksRef, {
+          title: newLinkInput.title,
+          url: newLinkInput.url,
+          createdAt: now,
+        }),
+        new Promise((resolve) => setTimeout(resolve, 600)),
+      ]);
 
       await fetchLinks();
       showToast("새 링크가 저장됐어요 ✓");
     } catch (error) {
       console.error("Firestore 링크 저장 실패:", error);
       showToast("링크 저장에 실패했어요. 다시 시도해 주세요.");
+    } finally {
+      setIsAdding(false);
     }
   };
 
@@ -127,9 +134,9 @@ export default function HomePage() {
             portfolioUrl={DEFAULT_PROFILE_DATA.socialLinks.portfolio}
           />
 
-          <LinkListSection links={links} isLoading={isLoading} />
+          <AddLinkDialog onAddLink={handleAddLink} isAdding={isAdding} />
 
-          <AddLinkDialog onAddLink={handleAddLink} />
+          <LinkListSection links={links} isLoading={isLoading} />
         </main>
       </Card>
 

@@ -38,8 +38,8 @@ export function LinkListSection({
 
       <Separator />
 
-      {/* 로딩 중 표시 (초기 로드 및 목록 갱신 시) */}
-      {isLoading ? (
+      {/* 로딩 중 표시 (초기 로드 시) */}
+      {isLoading && links.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center gap-2.5 py-8 rounded-[16px] bg-[#F9FAFB] border border-[#E5E8EB]/80"
           role="status"
@@ -60,7 +60,7 @@ export function LinkListSection({
             아직 등록된 링크가 없어요
           </p>
           <p className="text-[12px] text-[#8B95A1]">
-            아래 버튼을 눌러 첫 번째 링크를 추가해 보세요!
+            위 버튼을 눌러 첫 번째 링크를 추가해 보세요!
           </p>
         </div>
       ) : (
