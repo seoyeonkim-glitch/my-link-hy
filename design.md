@@ -60,4 +60,6 @@
 | **`Button`** | `@/components/ui/button.tsx` | • **default**: `bg-[#3182F6] hover:bg-[#1B64DA] text-white rounded-[14px] h-[52px] font-bold text-[17px] active:scale-[0.98]`<br>• **secondary**: `bg-[#F2F4F6] hover:bg-[#E5E8EB] text-[#191F28] rounded-[14px] h-[52px] font-bold text-[17px] active:scale-[0.98]` |
 | **`Card`** | `@/components/ui/card.tsx` | • **컨테이너**: `bg-white rounded-[24px] border-none shadow-none overflow-hidden`<br>• **리스트 로우(List-Row)**: `hover:bg-[#F2F4F6] rounded-[16px] transition-all p-3.5 flex items-center gap-[14px]` |
 | **`Badge`** | `@/components/ui/badge.tsx` | • **default**: `bg-[#F2F4F6] text-[#4E5968] rounded-full h-[30px] px-3 font-semibold text-[13px]`<br>• **brand**: `bg-[#E8F3FF] text-[#3182F6] rounded-full h-[30px] px-3 font-semibold text-[13px]` |
+| **`Avatar`** | `@/components/ui/avatar.tsx` | • `rounded-full bg-[#F2F4F6] h-20 w-20 overflow-hidden` 및 `fallbackSrc` 지원 |
 | **`Separator`** | `@/components/ui/separator.tsx` | • `bg-[#E5E8EB] h-[1px] w-full my-0` |
+| **`Toast`** | `@/components/ui/toast.tsx` | • 하단 플로팅 피드백 알림 (`rounded-full bg-[#191F28]/95 text-white`) |
