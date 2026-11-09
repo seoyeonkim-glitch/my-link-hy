@@ -23,7 +23,7 @@ import type { LinkBadgeVariant, LinkCategory, LinkItem } from "@/types";
 export interface AddLinkDialogProps {
   onAddLink: (
     newLink: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
-  ) => void;
+  ) => Promise<void> | void;
 }
 
 const addLinkSchema = z.object({
@@ -100,7 +100,7 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<AddLinkFormValues>({
     resolver: zodResolver(addLinkSchema),
     defaultValues: {
@@ -128,7 +128,7 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
     }
   };
 
-  const onSubmit = (values: AddLinkFormValues) => {
+  const onSubmit = async (values: AddLinkFormValues) => {
     const selectedCategory =
       CATEGORY_OPTIONS.find((item) => item.value === category) ??
       CATEGORY_OPTIONS[0];
@@ -146,7 +146,7 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
             variant: badgeType,
           };
 
-    onAddLink({
+    await onAddLink({
       title: values.title,
       url: values.url,
       description: values.description || undefined,
@@ -322,9 +322,10 @@ export function AddLinkDialog({ onAddLink }: AddLinkDialogProps) {
               <Button
                 type="submit"
                 variant="default"
+                disabled={isSubmitting}
                 className="h-[46px] rounded-[12px] text-[14px] font-bold"
               >
-                추가하기
+                {isSubmitting ? "저장 중..." : "추가하기"}
               </Button>
             </DialogFooter>
           </form>
