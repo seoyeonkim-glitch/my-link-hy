@@ -45,6 +45,8 @@
    - 버튼 문구는 **"일어날 일을 직접 말한다"**는 원칙에 따라 명확한 동사로 표현합니다. (예: `이메일로 연락하기`, `GitHub 방문하기`)
 5. **표준 list-row 패턴**:
    - 각 링크 아이템은 TDS의 `list-row` 표준 규격(좌측 전용 아이콘 뱃지 + 중앙 타이틀/디스크립션 + 우측 chevron 아이콘 + 터치 시 부드러운 반응)을 따릅니다.
+6. **Tailwind CSS 단일 스타일링 표준 (Tailwind CSS Only)**:
+   - 페이지 및 모든 컴포넌트 스타일은 CSS Module(`.module.css`), `<style jsx>`, 인라인 `style` 속성을 배제하고 **Tailwind CSS(v4) 유틸리티 클래스로 100% 통일**합니다.
 
 ### 2.2 TDS 핵심 디자인 토큰 (`DESIGN.md` 기준)
 
@@ -79,8 +81,8 @@
 ### 3.1 [FR-01] 로컬스토리지 연동 엔진 (Storage Engine)
 1. **스토리지 키 정의**:
    - `mylink_profile_data` 단일 키에 JSON 객체 형태로 프로필과 링크 목록 저장.
-2. **최초 접속 시 자동 시딩(Auto-Seeding)**:
-   - 브라우저 로컬스토리지를 조회하여 데이터가 없을 경우, 기본 샘플 데이터(기본 이름, 소개글, 아바타, 3개 기본 링크)를 즉시 저장.
+2. **최초 접속 시 자동 시딩(Auto-Seeding) 및 Mock API 데이터 활용**:
+   - 브라우저 로컬스토리지를 조회하여 데이터가 없을 경우, **4.2절에 정의된 백엔드 Mock API용 기본 더미 데이터(5개 링크 항목)**를 기반으로 즉시 초기화.
 3. **SSR Hydration Mismatch 방지**:
    - Next.js 서버 렌더링 시점과 브라우저 마운트 시점의 불일치를 방지하기 위해 마운트 완료(`isMounted`) 후 안전하게 로컬스토리지 값 동기화.
 
@@ -103,18 +105,26 @@
 
 ---
 
-## 4. 데이터 스키마 명세 (Data Schema)
+## 4. 데이터 스키마 및 더미 데이터 명세 (Data Schema & Dummy Data)
 
-로컬스토리지 키 `mylink_profile_data`에 저장되는 단일 JSON 구조입니다.
+### 4.1 데이터 스키마 (TypeScript Interface)
+
+로컬스토리지 키 `mylink_profile_data` 및 백엔드 Mock API 응답에서 사용하는 데이터 구조입니다.
 
 ```typescript
 export interface LinkItem {
   id: string;
+  userId?: string;
   title: string;
   url: string;
   description?: string;
+  category?: 'SOCIAL' | 'PROJECT' | 'BLOG' | 'PORTFOLIO' | 'CONTACT';
   icon?: 'github' | 'mail' | 'web';
+  order?: number;
   isActive: boolean;
+  clickCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface MyLinkProfileData {
@@ -129,6 +139,171 @@ export interface MyLinkProfileData {
   };
   links: LinkItem[];      // 링크 목록
   updatedAt: string;      // ISO 8601 타임스탬프
+}
+```
+
+### 4.2 백엔드 Mock API 및 초기 시딩용 링크 더미 데이터
+
+링크 목록 조회(`GET /api/links`) Mock API 및 초기 로컬스토리지 시딩에 사용하는 표준 더미 데이터입니다.
+
+#### 1) 리소스 객체 배열 형태
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440001",
+    "userId": "user_seoyeon_01",
+    "title": "GitHub 프로필",
+    "url": "https://github.com/seoyeonkim-glitch",
+    "description": "진행 중인 프로젝트와 잔디를 확인해요",
+    "category": "SOCIAL",
+    "icon": "github",
+    "order": 1,
+    "isActive": true,
+    "clickCount": 142,
+    "createdAt": "2026-11-01T09:00:00.000Z",
+    "updatedAt": "2026-11-08T12:30:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440002",
+    "userId": "user_seoyeon_01",
+    "title": "마이링크 (MyLink) 저장소",
+    "url": "https://github.com/seoyeonkim-glitch/my-link-hy",
+    "description": "Next.js와 TDS로 만든 나만의 링크 서비스예요",
+    "category": "PROJECT",
+    "icon": "github",
+    "order": 2,
+    "isActive": true,
+    "clickCount": 89,
+    "createdAt": "2026-11-03T14:30:00.000Z",
+    "updatedAt": "2026-11-09T10:15:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440003",
+    "userId": "user_seoyeon_01",
+    "title": "기술 블로그 (Velog)",
+    "url": "https://velog.io/@seoyeonkim-glitch",
+    "description": "바이브 코딩과 프론트엔드 개발 기록을 남겨요",
+    "category": "BLOG",
+    "icon": "web",
+    "order": 3,
+    "isActive": true,
+    "clickCount": 64,
+    "createdAt": "2026-11-05T18:20:00.000Z",
+    "updatedAt": "2026-11-06T09:00:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440004",
+    "userId": "user_seoyeon_01",
+    "title": "포트폴리오 노션",
+    "url": "https://notion.so/seoyeonkim-portfolio",
+    "description": "지금까지 만든 웹 프로덕트와 이력을 모았어요",
+    "category": "PORTFOLIO",
+    "icon": "web",
+    "order": 4,
+    "isActive": true,
+    "clickCount": 215,
+    "createdAt": "2026-11-07T11:15:00.000Z",
+    "updatedAt": "2026-11-09T15:40:00.000Z"
+  },
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440005",
+    "userId": "user_seoyeon_01",
+    "title": "이메일로 문의하기",
+    "url": "mailto:seoyeonkim@hanyang.ac.kr",
+    "description": "협업이나 커피챗 제안은 언제든 환영해요",
+    "category": "CONTACT",
+    "icon": "mail",
+    "order": 5,
+    "isActive": false,
+    "clickCount": 19,
+    "createdAt": "2026-11-09T20:00:00.000Z",
+    "updatedAt": "2026-11-09T20:00:00.000Z"
+  }
+]
+```
+
+#### 2) 공통 응답 래퍼 포함 형태 (REST API Response Envelope)
+```json
+{
+  "status": 200,
+  "success": true,
+  "message": "링크 목록을 성공적으로 불러왔어요.",
+  "meta": {
+    "totalCount": 5,
+    "activeCount": 4
+  },
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440001",
+      "userId": "user_seoyeon_01",
+      "title": "GitHub 프로필",
+      "url": "https://github.com/seoyeonkim-glitch",
+      "description": "진행 중인 프로젝트와 잔디를 확인해요",
+      "category": "SOCIAL",
+      "icon": "github",
+      "order": 1,
+      "isActive": true,
+      "clickCount": 142,
+      "createdAt": "2026-11-01T09:00:00.000Z",
+      "updatedAt": "2026-11-08T12:30:00.000Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440002",
+      "userId": "user_seoyeon_01",
+      "title": "마이링크 (MyLink) 저장소",
+      "url": "https://github.com/seoyeonkim-glitch/my-link-hy",
+      "description": "Next.js와 TDS로 만든 나만의 링크 서비스예요",
+      "category": "PROJECT",
+      "icon": "github",
+      "order": 2,
+      "isActive": true,
+      "clickCount": 89,
+      "createdAt": "2026-11-03T14:30:00.000Z",
+      "updatedAt": "2026-11-09T10:15:00.000Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440003",
+      "userId": "user_seoyeon_01",
+      "title": "기술 블로그 (Velog)",
+      "url": "https://velog.io/@seoyeonkim-glitch",
+      "description": "바이브 코딩과 프론트엔드 개발 기록을 남겨요",
+      "category": "BLOG",
+      "icon": "web",
+      "order": 3,
+      "isActive": true,
+      "clickCount": 64,
+      "createdAt": "2026-11-05T18:20:00.000Z",
+      "updatedAt": "2026-11-06T09:00:00.000Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440004",
+      "userId": "user_seoyeon_01",
+      "title": "포트폴리오 노션",
+      "url": "https://notion.so/seoyeonkim-portfolio",
+      "description": "지금까지 만든 웹 프로덕트와 이력을 모았어요",
+      "category": "PORTFOLIO",
+      "icon": "web",
+      "order": 4,
+      "isActive": true,
+      "clickCount": 215,
+      "createdAt": "2026-11-07T11:15:00.000Z",
+      "updatedAt": "2026-11-09T15:40:00.000Z"
+    },
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440005",
+      "userId": "user_seoyeon_01",
+      "title": "이메일로 문의하기",
+      "url": "mailto:seoyeonkim@hanyang.ac.kr",
+      "description": "협업이나 커피챗 제안은 언제든 환영해요",
+      "category": "CONTACT",
+      "icon": "mail",
+      "order": 5,
+      "isActive": false,
+      "clickCount": 19,
+      "createdAt": "2026-11-09T20:00:00.000Z",
+      "updatedAt": "2026-11-09T20:00:00.000Z"
+    }
+  ]
 }
 ```
 
