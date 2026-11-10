@@ -18,6 +18,7 @@ import {
   query,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { CheckCircle2, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -31,6 +32,7 @@ import {
 import { ProfileActions } from "@/components/profile/ProfileActions";
 import { LinkListSection } from "@/components/profile/LinkListSection";
 import { AddLinkDialog } from "@/components/profile/AddLinkDialog";
+import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { PreviewProfileDialog } from "@/components/profile/PreviewProfileDialog";
 import { DEFAULT_PROFILE_DATA } from "@/constants";
 import { auth, db, googleProvider } from "@/lib/firebase";
@@ -53,6 +55,7 @@ export default function HomePage() {
   const [links, setLinks] = useState<LinkItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Firestore(users/{user.uid}/links)에서 createdAt 기준 최신순(desc)으로 링크 불러오기
@@ -115,15 +118,16 @@ export default function HomePage() {
 
       const mergedInfo: FirestoreUserInfo = {
         uid: currentUser.uid,
+        // 기존에 사용자가 수정·저장한 displayName이 있으면 우선 유지하고, 없을 때만 이메일 앞부분으로 초기화
         displayName:
+          existingData?.displayName ||
           getEmailPrefix(resolvedEmail) ||
           currentUser.displayName ||
-          existingData?.displayName ||
           fallbackInfo.displayName,
         email: resolvedEmail,
         photoURL:
-          currentUser.photoURL ||
           existingData?.photoURL ||
+          currentUser.photoURL ||
           fallbackInfo.photoURL,
         bio: existingData?.bio || DEFAULT_PROFILE_DATA.bio,
       };
@@ -227,6 +231,66 @@ export default function HomePage() {
     }
   };
 
+  // Firestore(users 컬렉션)에서 displayName 중복 여부 확인 (본인 uid 제외)
+  const handleCheckDisplayNameDuplicate = async (
+    targetDisplayName: string
+  ): Promise<boolean> => {
+    const trimmed = targetDisplayName.trim();
+    if (!trimmed) return false;
+
+    const usersRef = collection(db, "users");
+    const q = query(usersRef, where("displayName", "==", trimmed));
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.some((docSnap) => docSnap.id !== user?.uid);
+  };
+
+  // 프로필 정보(displayName, bio, photoURL)를 Firestore(users/{user.uid})에 업데이트
+  const handleUpdateProfile = async (values: {
+    displayName: string;
+    bio: string;
+    photoURL: string;
+  }) => {
+    if (!user) {
+      toast.error("로그인 이후에 사용할 수 있어요.");
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const nextPhotoURL =
+      values.photoURL || user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
+
+    try {
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(
+        userDocRef,
+        {
+          uid: user.uid,
+          displayName: values.displayName,
+          email: userInfo?.email || user.email || "",
+          bio: values.bio,
+          photoURL: nextPhotoURL,
+          updatedAt: now,
+        },
+        { merge: true }
+      );
+
+      setUserInfo((prev) => ({
+        uid: user.uid,
+        displayName: values.displayName,
+        email: prev?.email || user.email || "",
+        bio: values.bio,
+        photoURL: nextPhotoURL,
+      }));
+
+      toast.success("프로필이 수정됐어요 ✓");
+    } catch (error) {
+      console.error("Firestore 프로필 수정 실패:", error);
+      toast.error("프로필 수정에 실패했어요. 다시 시도해 주세요.");
+      throw error;
+    }
+  };
+
   // 링크 추가 시 Firestore(users/{user.uid}/links)에 저장 후 목록 즉시 갱신
   const handleAddLink = async (
     newLinkInput: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
@@ -302,8 +366,8 @@ export default function HomePage() {
 
   const displayUserEmail = userInfo?.email || user?.email || null;
   const displayUserName =
-    getEmailPrefix(displayUserEmail) ||
     userInfo?.displayName ||
+    getEmailPrefix(displayUserEmail) ||
     user?.displayName ||
     DEFAULT_PROFILE_DATA.displayName;
   const displayUserAvatar =
@@ -324,6 +388,7 @@ export default function HomePage() {
             isAuthActionLoading={isAuthActionLoading}
             onGoogleLogin={handleGoogleLogin}
             onLogout={handleLogout}
+            onEditProfile={() => setIsEditProfileOpen(true)}
             onPreviewPage={() => setIsPreviewOpen(true)}
             onCopyPageLink={handleCopyPageLink}
             onShare={handleShare}
@@ -438,6 +503,17 @@ export default function HomePage() {
           Synced with Cloud Firestore
         </p>
       </footer>
+
+      {/* ── 프로필 수정 다이얼로그 (displayName 중복 확인 포함) ── */}
+      <EditProfileDialog
+        open={isEditProfileOpen}
+        onOpenChange={setIsEditProfileOpen}
+        currentDisplayName={displayUserName}
+        currentBio={displayUserBio}
+        currentPhotoURL={displayUserAvatar}
+        onCheckDisplayNameDuplicate={handleCheckDisplayNameDuplicate}
+        onUpdateProfile={handleUpdateProfile}
+      />
 
       {/* ── 내 페이지 미리보기 다이얼로그 (Base UI Dialog) ── */}
       <PreviewProfileDialog

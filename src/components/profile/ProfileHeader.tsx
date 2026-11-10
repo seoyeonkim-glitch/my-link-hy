@@ -7,6 +7,7 @@ import {
   Eye,
   Loader2,
   LogOut,
+  Pencil,
 } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ export interface ProfileHeaderProps {
   isAuthActionLoading?: boolean;
   onGoogleLogin?: () => void;
   onLogout?: () => void;
+  onEditProfile?: () => void;
   onPreviewPage?: () => void;
   onCopyPageLink?: () => void;
   onShare: () => void;
@@ -70,6 +72,7 @@ export function ProfileHeader({
   isAuthActionLoading = false,
   onGoogleLogin,
   onLogout,
+  onEditProfile,
   onPreviewPage,
   onCopyPageLink,
   onShare,
@@ -140,11 +143,19 @@ export function ProfileHeader({
 
                 <DropdownMenuSeparator />
 
-                {/* 내 페이지 미리보기 & 링크 복사 액션 */}
+                {/* 프로필 수정, 내 페이지 미리보기 & 링크 복사 액션 */}
                 <DropdownMenuGroup>
+                  <DropdownMenuItem onClick={onEditProfile}>
+                    <Pencil
+                      className="w-4 h-4 text-[#3182F6] shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span>프로필 수정하기</span>
+                  </DropdownMenuItem>
+
                   <DropdownMenuItem onClick={onPreviewPage}>
                     <Eye
-                      className="w-4 h-4 text-[#3182F6] shrink-0"
+                      className="w-4 h-4 text-[#4E5968] shrink-0"
                       aria-hidden="true"
                     />
                     <span>내 페이지 미리보기</span>
@@ -234,9 +245,20 @@ export function ProfileHeader({
             </p>
           )}
 
-          <p className="text-[12.5px] sm:text-[13px] font-normal leading-[1.5] tracking-[-0.005em] text-[#6B7684] break-keep px-2">
+          <p className="text-[12.5px] sm:text-[13px] font-normal leading-[1.5] tracking-[-0.005em] text-[#6B7684] break-keep px-2 mb-3">
             {bio}
           </p>
+
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={onEditProfile}
+            className="h-8 rounded-full px-3.5 text-[12px] font-semibold text-[#4E5968] hover:text-[#191F28] gap-1.5"
+          >
+            <Pencil className="w-3 h-3" aria-hidden="true" />
+            프로필 수정
+          </Button>
         </div>
       )}
     </header>
