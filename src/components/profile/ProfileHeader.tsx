@@ -267,10 +267,11 @@ export function ProfileHeader({
   email,
   bio,
   avatarUrl,
+  isLoggedIn = false,
   onEditProfile,
 }: Pick<
   ProfileHeaderProps,
-  "displayName" | "email" | "bio" | "avatarUrl" | "onEditProfile"
+  "displayName" | "email" | "bio" | "avatarUrl" | "isLoggedIn" | "onEditProfile"
 >) {
   return (
     <section
@@ -289,7 +290,7 @@ export function ProfileHeader({
         <span
           className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-[#34C759] ring-2 ring-white"
           aria-label="온라인"
-          title="로그인됨"
+          title="온라인"
         />
       </div>
 
@@ -307,16 +308,18 @@ export function ProfileHeader({
         {bio}
       </p>
 
-      <Button
-        type="button"
-        variant="default"
-        size="sm"
-        onClick={onEditProfile}
-        className="h-8 rounded-full px-4 text-[12px] font-bold gap-1.5 whitespace-nowrap"
-      >
-        <Pencil className="w-3 h-3" aria-hidden="true" />
-        프로필 수정
-      </Button>
+      {isLoggedIn && (
+        <Button
+          type="button"
+          variant="default"
+          size="sm"
+          onClick={onEditProfile}
+          className="h-8 rounded-full px-4 text-[12px] font-bold gap-1.5 whitespace-nowrap"
+        >
+          <Pencil className="w-3 h-3" aria-hidden="true" />
+          프로필 수정
+        </Button>
+      )}
     </section>
   );
 }

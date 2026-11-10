@@ -9,6 +9,7 @@ import type { LinkItem } from "@/types";
 export interface LinkListSectionProps {
   links: LinkItem[];
   isLoading?: boolean;
+  isEditable?: boolean;
   onUpdateLink: (
     id: string,
     updatedValues: { title: string; url: string }
@@ -19,6 +20,7 @@ export interface LinkListSectionProps {
 export function LinkListSection({
   links,
   isLoading = false,
+  isEditable = true,
   onUpdateLink,
   onDeleteLink,
 }: LinkListSectionProps) {
@@ -67,7 +69,9 @@ export function LinkListSection({
             아직 등록된 링크가 없어요
           </p>
           <p className="text-[12px] text-[#8B95A1]">
-            위 버튼을 눌러 첫 번째 링크를 추가해 보세요!
+            {isEditable
+              ? "위 버튼을 눌러 첫 번째 링크를 추가해 보세요!"
+              : "로그인 이후에 첫 번째 링크를 추가할 수 있어요."}
           </p>
         </div>
       ) : (
@@ -76,6 +80,7 @@ export function LinkListSection({
             <li key={link.id} role="listitem">
               <LinkCardItem
                 link={link}
+                isEditable={isEditable}
                 onUpdateLink={onUpdateLink}
                 onDeleteLink={onDeleteLink}
               />

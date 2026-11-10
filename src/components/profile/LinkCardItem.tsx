@@ -8,6 +8,7 @@ import { z } from "zod";
 import {
   BarChart3,
   Check,
+  ChevronRight,
   FileText,
   Globe,
   Loader2,
@@ -111,6 +112,7 @@ function getIconConfig(icon?: LinkIconType, url?: string) {
 
 export interface LinkCardItemProps {
   link: LinkItem;
+  isEditable?: boolean;
   onUpdateLink: (
     id: string,
     updatedValues: { title: string; url: string }
@@ -120,6 +122,7 @@ export interface LinkCardItemProps {
 
 export function LinkCardItem({
   link,
+  isEditable = true,
   onUpdateLink,
   onDeleteLink,
 }: LinkCardItemProps) {
@@ -303,31 +306,38 @@ export function LinkCardItem({
           </div>
         </Link>
 
-        {/* 항상 표시되는 수정 / 삭제 액션 버튼 */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <Button
-            type="button"
-            variant="default"
-            size="sm"
-            onClick={handleStartEdit}
-            aria-label={`${link.title} 수정`}
-            className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold"
-          >
-            <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
-            수정
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={() => setIsDeleteDialogOpen(true)}
-            aria-label={`${link.title} 삭제`}
-            className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold"
-          >
-            <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
-            삭제
-          </Button>
-        </div>
+        {/* 로그인(편집 가능) 상태일 때만 수정 / 삭제 버튼 노출, 비로그인 시 이동 화살표 표시 */}
+        {isEditable ? (
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={handleStartEdit}
+              aria-label={`${link.title} 수정`}
+              className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold"
+            >
+              <Pencil className="w-3.5 h-3.5" aria-hidden="true" />
+              수정
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              size="sm"
+              onClick={() => setIsDeleteDialogOpen(true)}
+              aria-label={`${link.title} 삭제`}
+              className="h-8 px-2.5 rounded-[10px] text-[12px] font-semibold"
+            >
+              <Trash2 className="w-3.5 h-3.5" aria-hidden="true" />
+              삭제
+            </Button>
+          </div>
+        ) : (
+          <ChevronRight
+            className="w-4 h-4 text-[#8B95A1] shrink-0"
+            aria-hidden="true"
+          />
+        )}
       </CardListRow>
 
       {/* 삭제 확인 모달 */}
