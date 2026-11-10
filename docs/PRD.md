@@ -21,7 +21,7 @@
 | 구분 | 포함 여부 | 주요 내용 |
 |---|:---:|---|
 | **현재 시연 범위 (In-Scope)** | **✅ 필수** | • 브라우저 `localStorage` 기반 프로필 & 링크 데이터 읽기/쓰기<br>• 최초 방문 시 기본 샘플 데이터 자동 초기화 (Auto-seeding)<br>• Next.js App Router 기반의 SSR Hydration-safe 렌더링<br>• **shadcn/ui 기반 재사용 컴포넌트 구조 (`Button`, `Card`, `Badge`, `Separator` 등)**<br>• **토스 디자인 시스템(TDS) 스타일 가이드라인 (`DESIGN.md`) 100% 준수**<br>• 모바일 반응형 프로필 카드 UI (Tailwind CSS v4 스타일링)<br>• 이메일 클립보드 복사 피커 & 외부 링크 새 탭 이동 인터랙션 |
-| **추후 단계 범위 (Deferred / Out-of-Scope)** | **⏳ 차기 단계** | • 마이페이지 편집기 (링크 추가/수정 폼, 드래그 앤 드롭 등)<br>• 방문자 및 링크 클릭 통계(Analytics) 분석 지표<br>• 테마 실시간 변경 커스텀 피커<br>• JSON 데이터 내보내기/가져오기 백업 모듈 |
+| **추후 단계 범위 (Deferred / Out-of-Scope)** | **⏳ 차기 단계** | • 개인별 페이지(`/[displayName]`) 동적 메타데이터(`generateMetadata`) 및 OG 태그 설정 (추후 추가 예정)<br>• 마이페이지 고도화 편집기 (드래그 앤 드롭 등)<br>• 방문자 및 링크 클릭 통계(Analytics) 분석 지표<br>• 테마 실시간 변경 커스텀 피커<br>• JSON 데이터 내보내기/가져오기 백업 모듈 |
 
 ---
 

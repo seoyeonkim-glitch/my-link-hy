@@ -1,13 +1,8 @@
-import type { Metadata } from "next";
 import { QueryProvider } from "@/components/common/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
-export const metadata: Metadata = {
-  title: "김서연 | 마이페이지",
-  description: "김서연의 마이링크 페이지 — 링크, 연락처, 소개",
-};
-
+// 동적 메타데이터(generateMetadata 등)는 추후 단계에서 추가 예정
 export default function RootLayout({
   children,
 }: Readonly<{
