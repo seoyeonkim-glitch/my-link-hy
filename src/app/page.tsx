@@ -354,29 +354,43 @@ export default function HomePage() {
     toast.success("이메일 복사됐어요 ✓");
   };
 
+  const displayUserEmail = userInfo?.email || user?.email || null;
+  const displayUserName =
+    userInfo?.displayName ||
+    getEmailPrefix(displayUserEmail) ||
+    user?.displayName ||
+    DEFAULT_PROFILE_DATA.displayName;
+  const displayUserAvatar =
+    userInfo?.photoURL || user?.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
+  const displayUserBio = userInfo?.bio || DEFAULT_PROFILE_DATA.bio;
+
   const handleCopyPageLink = () => {
     if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
+      const targetUrl = user
+        ? `${window.location.origin}/${encodeURIComponent(displayUserName)}`
+        : window.location.href;
+      navigator.clipboard.writeText(targetUrl);
       toast.success("내 페이지 링크가 복사됐어요 ✓");
     }
   };
 
   const handleShare = () => {
-    const shareTitle = `${
-      userInfo?.displayName ||
-      getEmailPrefix(user?.email) ||
-      user?.displayName ||
-      DEFAULT_PROFILE_DATA.displayName
-    } | MyLink`;
+    const shareTitle = `${displayUserName} | MyLink`;
+    const targetUrl =
+      typeof window !== "undefined"
+        ? user
+          ? `${window.location.origin}/${encodeURIComponent(displayUserName)}`
+          : window.location.href
+        : "";
 
     if (typeof window !== "undefined" && navigator.share) {
       navigator.share({
         title: shareTitle,
-        url: window.location.href,
+        url: targetUrl,
       });
     } else if (typeof window !== "undefined") {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success("링크 복사됐어요 ✓");
+      navigator.clipboard.writeText(targetUrl);
+      toast.success("내 페이지 링크가 복사됐어요 ✓");
     }
   };
 
@@ -418,16 +432,6 @@ export default function HomePage() {
   const handleDeleteLink = async (id: string) => {
     await deleteLinkMutation.mutateAsync(id);
   };
-
-  const displayUserEmail = userInfo?.email || user?.email || null;
-  const displayUserName =
-    userInfo?.displayName ||
-    getEmailPrefix(displayUserEmail) ||
-    user?.displayName ||
-    DEFAULT_PROFILE_DATA.displayName;
-  const displayUserAvatar =
-    userInfo?.photoURL || user?.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
-  const displayUserBio = userInfo?.bio || DEFAULT_PROFILE_DATA.bio;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
