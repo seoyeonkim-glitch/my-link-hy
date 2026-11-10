@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { QueryProvider } from "@/components/common/QueryProvider";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -27,8 +28,10 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full">
-        {children}
-        <Toaster />
+        <QueryProvider>
+          {children}
+          <Toaster />
+        </QueryProvider>
       </body>
     </html>
   );

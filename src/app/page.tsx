@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   onAuthStateChanged,
   signInWithPopup,
@@ -20,6 +20,11 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { CheckCircle2, Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -46,89 +51,63 @@ interface FirestoreUserInfo {
   bio: string;
 }
 
+// 이메일 주소에서 '@' 앞부분(아이디)을 추출하여 초기 displayName으로 사용
+const getEmailPrefix = (email?: string | null) =>
+  email ? email.split("@")[0] : "";
+
 export default function HomePage() {
+  const queryClient = useQueryClient();
+
   const [user, setUser] = useState<User | null>(null);
-  const [userInfo, setUserInfo] = useState<FirestoreUserInfo | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isAuthActionLoading, setIsAuthActionLoading] = useState(false);
 
-  const [links, setLinks] = useState<LinkItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isAdding, setIsAdding] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
-  // Firestore(users/{user.uid}/links)에서 createdAt 기준 최신순(desc)으로 링크 불러오기
-  const fetchLinks = useCallback(async (uid: string) => {
-    setIsLoading(true);
-    try {
-      const linksRef = collection(db, "users", uid, "links");
-      const q = query(linksRef, orderBy("createdAt", "desc"));
-      const snapshot = await getDocs(q);
+  // Firebase 인증 상태 감지
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+      setIsAuthLoading(false);
+    });
 
-      const fetchedLinks: LinkItem[] = snapshot.docs.map((docSnap) => {
-        const data = docSnap.data();
-        return {
-          id: docSnap.id,
-          userId: uid,
-          title: data.title ?? "",
-          url: data.url ?? "",
-          description: data.description || data.url || "",
-          category: data.category,
-          icon: data.icon,
-          badge: data.badge,
-          actionLabel: data.actionLabel ?? "방문",
-          isActive: data.isActive ?? true,
-          createdAt: data.createdAt ?? "",
-          updatedAt: data.updatedAt ?? undefined,
-        };
-      });
-
-      setLinks(fetchedLinks);
-    } catch (error) {
-      console.error("Firestore 링크 목록 불러오기 실패:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    return () => unsubscribe();
   }, []);
 
-  // 이메일 주소에서 '@' 앞부분(아이디)을 추출하여 displayName으로 사용
-  const getEmailPrefix = (email?: string | null) =>
-    email ? email.split("@")[0] : "";
+  // [TanStack Query - useQuery] Firestore(users/{user.uid}) 유저 프로필 정보 조회 및 초기 동기화
+  const { data: userInfo } = useQuery<FirestoreUserInfo>({
+    queryKey: ["users", user?.uid, "profile"],
+    enabled: Boolean(user?.uid),
+    queryFn: async () => {
+      if (!user) throw new Error("인증된 사용자가 없어요.");
 
-  // Firestore(users/{user.uid})의 유저 정보를 동기화하고 화면에 표시할 유저 데이터 로드
-  const syncAndFetchUserInfo = useCallback(async (currentUser: User) => {
-    const emailPrefix = getEmailPrefix(currentUser.email);
-    const fallbackInfo: FirestoreUserInfo = {
-      uid: currentUser.uid,
-      displayName:
-        emailPrefix ||
-        currentUser.displayName ||
-        DEFAULT_PROFILE_DATA.displayName,
-      email: currentUser.email || "",
-      photoURL: currentUser.photoURL || DEFAULT_PROFILE_DATA.avatarUrl,
-      bio: DEFAULT_PROFILE_DATA.bio,
-    };
+      const emailPrefix = getEmailPrefix(user.email);
+      const fallbackInfo: FirestoreUserInfo = {
+        uid: user.uid,
+        displayName:
+          emailPrefix || user.displayName || DEFAULT_PROFILE_DATA.displayName,
+        email: user.email || "",
+        photoURL: user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl,
+        bio: DEFAULT_PROFILE_DATA.bio,
+      };
 
-    try {
-      const userDocRef = doc(db, "users", currentUser.uid);
+      const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
       const existingData = userSnap.exists() ? userSnap.data() : null;
-      const resolvedEmail = currentUser.email || existingData?.email || "";
+      const resolvedEmail = user.email || existingData?.email || "";
 
       const mergedInfo: FirestoreUserInfo = {
-        uid: currentUser.uid,
+        uid: user.uid,
         // 기존에 사용자가 수정·저장한 displayName이 있으면 우선 유지하고, 없을 때만 이메일 앞부분으로 초기화
         displayName:
           existingData?.displayName ||
           getEmailPrefix(resolvedEmail) ||
-          currentUser.displayName ||
+          user.displayName ||
           fallbackInfo.displayName,
         email: resolvedEmail,
         photoURL:
-          existingData?.photoURL ||
-          currentUser.photoURL ||
-          fallbackInfo.photoURL,
+          existingData?.photoURL || user.photoURL || fallbackInfo.photoURL,
         bio: existingData?.bio || DEFAULT_PROFILE_DATA.bio,
       };
 
@@ -141,32 +120,165 @@ export default function HomePage() {
         { merge: true }
       );
 
-      setUserInfo(mergedInfo);
-    } catch (error) {
-      console.error("Firestore 유저 정보 동기화 실패:", error);
-      setUserInfo(fallbackInfo);
-    }
-  }, []);
+      return mergedInfo;
+    },
+  });
 
-  // Firebase 인증 상태 감지 및 유저별 데이터 로드
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      setUser(currentUser);
-      setIsAuthLoading(false);
+  // [TanStack Query - useQuery] Firestore(users/{user.uid}/links) 링크 목록 조회
+  const { data: links = [], isLoading: isLinksLoading } = useQuery<LinkItem[]>({
+    queryKey: ["users", user?.uid, "links"],
+    enabled: Boolean(user?.uid),
+    queryFn: async () => {
+      if (!user) return [];
+      const linksRef = collection(db, "users", user.uid, "links");
+      const q = query(linksRef, orderBy("createdAt", "desc"));
+      const snapshot = await getDocs(q);
 
-      if (currentUser) {
-        await Promise.all([
-          syncAndFetchUserInfo(currentUser),
-          fetchLinks(currentUser.uid),
-        ]);
-      } else {
-        setUserInfo(null);
-        setLinks([]);
+      return snapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          userId: user.uid,
+          title: data.title ?? "",
+          url: data.url ?? "",
+          description: data.description || data.url || "",
+          category: data.category,
+          icon: data.icon,
+          badge: data.badge,
+          actionLabel: data.actionLabel ?? "방문",
+          isActive: data.isActive ?? true,
+          createdAt: data.createdAt ?? "",
+          updatedAt: data.updatedAt ?? undefined,
+        };
+      });
+    },
+  });
+
+  // [TanStack Query - useMutation] 새 링크 추가 (users/{user.uid}/links)
+  const addLinkMutation = useMutation({
+    mutationFn: async (
+      newLinkInput: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
+    ) => {
+      if (!user) throw new Error("로그인이 필요해요.");
+      const now = new Date().toISOString();
+      const linksRef = collection(db, "users", user.uid, "links");
+
+      await Promise.all([
+        addDoc(linksRef, {
+          title: newLinkInput.title,
+          url: newLinkInput.url,
+          createdAt: now,
+        }),
+        new Promise((resolve) => setTimeout(resolve, 600)),
+      ]);
+    },
+    onSuccess: async () => {
+      if (user) {
+        await queryClient.invalidateQueries({
+          queryKey: ["users", user.uid, "links"],
+        });
       }
-    });
+      toast.success("새 링크가 저장됐어요 ✓");
+    },
+    onError: (error) => {
+      console.error("Firestore 링크 저장 실패:", error);
+      toast.error("링크 저장에 실패했어요. 다시 시도해 주세요.");
+    },
+  });
 
-    return () => unsubscribe();
-  }, [fetchLinks, syncAndFetchUserInfo]);
+  // [TanStack Query - useMutation] 링크 수정 (users/{user.uid}/links/{id})
+  const updateLinkMutation = useMutation({
+    mutationFn: async ({
+      id,
+      updatedValues,
+    }: {
+      id: string;
+      updatedValues: { title: string; url: string };
+    }) => {
+      if (!user) throw new Error("로그인이 필요해요.");
+      const now = new Date().toISOString();
+      const linkDocRef = doc(db, "users", user.uid, "links", id);
+
+      await updateDoc(linkDocRef, {
+        title: updatedValues.title,
+        url: updatedValues.url,
+        updatedAt: now,
+      });
+    },
+    onSuccess: async () => {
+      if (user) {
+        await queryClient.invalidateQueries({
+          queryKey: ["users", user.uid, "links"],
+        });
+      }
+      toast.success("링크가 수정됐어요 ✓");
+    },
+    onError: (error) => {
+      console.error("Firestore 링크 수정 실패:", error);
+      toast.error("링크 수정에 실패했어요. 다시 시도해 주세요.");
+    },
+  });
+
+  // [TanStack Query - useMutation] 링크 삭제 (users/{user.uid}/links/{id})
+  const deleteLinkMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error("로그인이 필요해요.");
+      const linkDocRef = doc(db, "users", user.uid, "links", id);
+      await deleteDoc(linkDocRef);
+    },
+    onSuccess: async () => {
+      if (user) {
+        await queryClient.invalidateQueries({
+          queryKey: ["users", user.uid, "links"],
+        });
+      }
+      toast.success("링크가 삭제됐어요 ✓");
+    },
+    onError: (error) => {
+      console.error("Firestore 링크 삭제 실패:", error);
+      toast.error("링크 삭제에 실패했어요. 다시 시도해 주세요.");
+    },
+  });
+
+  // [TanStack Query - useMutation] 프로필 수정 (users/{user.uid})
+  const updateProfileMutation = useMutation({
+    mutationFn: async (values: {
+      displayName: string;
+      bio: string;
+      photoURL: string;
+    }) => {
+      if (!user) throw new Error("로그인이 필요해요.");
+      const now = new Date().toISOString();
+      const nextPhotoURL =
+        values.photoURL || user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
+
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(
+        userDocRef,
+        {
+          uid: user.uid,
+          displayName: values.displayName,
+          email: userInfo?.email || user.email || "",
+          bio: values.bio,
+          photoURL: nextPhotoURL,
+          updatedAt: now,
+        },
+        { merge: true }
+      );
+    },
+    onSuccess: async () => {
+      if (user) {
+        await queryClient.invalidateQueries({
+          queryKey: ["users", user.uid, "profile"],
+        });
+      }
+      toast.success("프로필이 수정됐어요 ✓");
+    },
+    onError: (error) => {
+      console.error("Firestore 프로필 수정 실패:", error);
+      toast.error("프로필 수정에 실패했어요. 다시 시도해 주세요.");
+    },
+  });
 
   // 구글 소셜 로그인 핸들러
   const handleGoogleLogin = async () => {
@@ -187,6 +299,7 @@ export default function HomePage() {
     setIsAuthActionLoading(true);
     try {
       await signOut(auth);
+      queryClient.clear();
       toast.success("로그아웃됐어요 ✓");
     } catch (error) {
       console.error("로그아웃 실패:", error);
@@ -216,6 +329,7 @@ export default function HomePage() {
   const handleShare = () => {
     const shareTitle = `${
       userInfo?.displayName ||
+      getEmailPrefix(user?.email) ||
       user?.displayName ||
       DEFAULT_PROFILE_DATA.displayName
     } | MyLink`;
@@ -245,123 +359,29 @@ export default function HomePage() {
     return snapshot.docs.some((docSnap) => docSnap.id !== user?.uid);
   };
 
-  // 프로필 정보(displayName, bio, photoURL)를 Firestore(users/{user.uid})에 업데이트
   const handleUpdateProfile = async (values: {
     displayName: string;
     bio: string;
     photoURL: string;
   }) => {
-    if (!user) {
-      toast.error("로그인 이후에 사용할 수 있어요.");
-      return;
-    }
-
-    const now = new Date().toISOString();
-    const nextPhotoURL =
-      values.photoURL || user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
-
-    try {
-      const userDocRef = doc(db, "users", user.uid);
-      await setDoc(
-        userDocRef,
-        {
-          uid: user.uid,
-          displayName: values.displayName,
-          email: userInfo?.email || user.email || "",
-          bio: values.bio,
-          photoURL: nextPhotoURL,
-          updatedAt: now,
-        },
-        { merge: true }
-      );
-
-      setUserInfo((prev) => ({
-        uid: user.uid,
-        displayName: values.displayName,
-        email: prev?.email || user.email || "",
-        bio: values.bio,
-        photoURL: nextPhotoURL,
-      }));
-
-      toast.success("프로필이 수정됐어요 ✓");
-    } catch (error) {
-      console.error("Firestore 프로필 수정 실패:", error);
-      toast.error("프로필 수정에 실패했어요. 다시 시도해 주세요.");
-      throw error;
-    }
+    await updateProfileMutation.mutateAsync(values);
   };
 
-  // 링크 추가 시 Firestore(users/{user.uid}/links)에 저장 후 목록 즉시 갱신
   const handleAddLink = async (
     newLinkInput: Omit<LinkItem, "id" | "order" | "createdAt" | "updatedAt">
   ) => {
-    if (!user) {
-      toast.error("로그인 이후에 사용할 수 있어요.");
-      return;
-    }
-
-    const now = new Date().toISOString();
-    setIsAdding(true);
-
-    try {
-      const linksRef = collection(db, "users", user.uid, "links");
-      await Promise.all([
-        addDoc(linksRef, {
-          title: newLinkInput.title,
-          url: newLinkInput.url,
-          createdAt: now,
-        }),
-        new Promise((resolve) => setTimeout(resolve, 600)),
-      ]);
-
-      await fetchLinks(user.uid);
-      toast.success("새 링크가 저장됐어요 ✓");
-    } catch (error) {
-      console.error("Firestore 링크 저장 실패:", error);
-      toast.error("링크 저장에 실패했어요. 다시 시도해 주세요.");
-    } finally {
-      setIsAdding(false);
-    }
+    await addLinkMutation.mutateAsync(newLinkInput);
   };
 
-  // 링크 수정 시 Firestore(users/{user.uid}/links/{id}) 업데이트 후 목록 갱신
   const handleUpdateLink = async (
     id: string,
     updatedValues: { title: string; url: string }
   ) => {
-    if (!user) return;
-    const now = new Date().toISOString();
-
-    try {
-      const linkDocRef = doc(db, "users", user.uid, "links", id);
-      await updateDoc(linkDocRef, {
-        title: updatedValues.title,
-        url: updatedValues.url,
-        updatedAt: now,
-      });
-
-      await fetchLinks(user.uid);
-      toast.success("링크가 수정됐어요 ✓");
-    } catch (error) {
-      console.error("Firestore 링크 수정 실패:", error);
-      toast.error("링크 수정에 실패했어요. 다시 시도해 주세요.");
-    }
+    await updateLinkMutation.mutateAsync({ id, updatedValues });
   };
 
-  // 링크 삭제 시 Firestore(users/{user.uid}/links/{id}) 삭제 후 목록 갱신
   const handleDeleteLink = async (id: string) => {
-    if (!user) return;
-
-    try {
-      const linkDocRef = doc(db, "users", user.uid, "links", id);
-      await deleteDoc(linkDocRef);
-
-      await fetchLinks(user.uid);
-      toast.success("링크가 삭제됐어요 ✓");
-    } catch (error) {
-      console.error("Firestore 링크 삭제 실패:", error);
-      toast.error("링크 삭제에 실패했어요. 다시 시도해 주세요.");
-    }
+    await deleteLinkMutation.mutateAsync(id);
   };
 
   const displayUserEmail = userInfo?.email || user?.email || null;
@@ -419,11 +439,14 @@ export default function HomePage() {
                 portfolioUrl={DEFAULT_PROFILE_DATA.socialLinks.portfolio}
               />
 
-              <AddLinkDialog onAddLink={handleAddLink} isAdding={isAdding} />
+              <AddLinkDialog
+                onAddLink={handleAddLink}
+                isAdding={addLinkMutation.isPending}
+              />
 
               <LinkListSection
                 links={links}
-                isLoading={isLoading}
+                isLoading={isLinksLoading}
                 onUpdateLink={handleUpdateLink}
                 onDeleteLink={handleDeleteLink}
               />
