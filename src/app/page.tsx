@@ -240,7 +240,7 @@ export default function HomePage() {
     },
   });
 
-  // [TanStack Query - useMutation] 프로필 수정 (users/{user.uid})
+  // [TanStack Query - useMutation] 프로필 수정 (users/{user.uid}) — 낙관적 업데이트(Optimistic Update) 적용
   const updateProfileMutation = useMutation({
     mutationFn: async (values: {
       displayName: string;
@@ -266,17 +266,52 @@ export default function HomePage() {
         { merge: true }
       );
     },
-    onSuccess: async () => {
+    onMutate: async (newValues) => {
+      if (!user) return { previousProfile: undefined };
+
+      const profileQueryKey = ["users", user.uid, "profile"] as const;
+
+      // 진행 중인 리페치 요청 취소 (낙관적 업데이트 값을 덮어쓰지 않도록 방지)
+      await queryClient.cancelQueries({ queryKey: profileQueryKey });
+
+      // 이전 프로필 캐시 스냅샷 보관 (롤백용)
+      const previousProfile =
+        queryClient.getQueryData<FirestoreUserInfo>(profileQueryKey);
+
+      const nextPhotoURL =
+        newValues.photoURL || user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
+
+      // 캐시에 새 프로필 데이터를 즉시 낙관적으로 반영
+      queryClient.setQueryData<FirestoreUserInfo>(profileQueryKey, (old) => ({
+        uid: user.uid,
+        displayName: newValues.displayName,
+        email: old?.email || user.email || "",
+        bio: newValues.bio,
+        photoURL: nextPhotoURL,
+      }));
+
+      return { previousProfile };
+    },
+    onSuccess: () => {
+      toast.success("프로필이 수정됐어요 ✓");
+    },
+    onError: (error, _newValues, context) => {
+      console.error("Firestore 프로필 수정 실패:", error);
+      // 에러 발생 시 이전 프로필 스냅샷으로 롤백
+      if (user && context?.previousProfile) {
+        queryClient.setQueryData(
+          ["users", user.uid, "profile"],
+          context.previousProfile
+        );
+      }
+      toast.error("프로필 수정에 실패했어요. 다시 시도해 주세요.");
+    },
+    onSettled: async () => {
       if (user) {
         await queryClient.invalidateQueries({
           queryKey: ["users", user.uid, "profile"],
         });
       }
-      toast.success("프로필이 수정됐어요 ✓");
-    },
-    onError: (error) => {
-      console.error("Firestore 프로필 수정 실패:", error);
-      toast.error("프로필 수정에 실패했어요. 다시 시도해 주세요.");
     },
   });
 
