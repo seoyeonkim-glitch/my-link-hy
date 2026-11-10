@@ -32,6 +32,7 @@ import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
   GoogleIcon,
+  MyPageTopBar,
   ProfileHeader,
 } from "@/components/profile/ProfileHeader";
 import { ProfileActions } from "@/components/profile/ProfileActions";
@@ -435,49 +436,57 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
-      {/* ── 메인 프로필 카드 (shadcn/ui Card × TDS 재사용 컴포넌트 조합) ── */}
-      <Card className="w-full max-w-[440px]">
-        <main role="main">
-          <ProfileHeader
-            displayName={displayUserName}
-            email={displayUserEmail}
-            bio={displayUserBio}
-            avatarUrl={displayUserAvatar}
-            isLoggedIn={Boolean(user)}
-            isAuthActionLoading={isAuthActionLoading}
-            onGoogleLogin={handleGoogleLogin}
-            onLogout={handleLogout}
-            onEditProfile={() => setIsEditProfileOpen(true)}
-            onPreviewPage={() => setIsPreviewOpen(true)}
-            onCopyPageLink={handleCopyPageLink}
-            onShare={handleShare}
-          />
+      {/* ── 상단 마이페이지 헤더 바 (가로형) ── */}
+      <MyPageTopBar
+        displayName={displayUserName}
+        email={displayUserEmail}
+        avatarUrl={displayUserAvatar}
+        isLoggedIn={Boolean(user)}
+        isAuthActionLoading={isAuthActionLoading}
+        onGoogleLogin={handleGoogleLogin}
+        onLogout={handleLogout}
+        onEditProfile={() => setIsEditProfileOpen(true)}
+        onPreviewPage={() => setIsPreviewOpen(true)}
+        onCopyPageLink={handleCopyPageLink}
+        onShare={handleShare}
+      />
 
-          {isAuthLoading ? (
-            /* ── 인증 상태 확인 중 로딩 화면 ── */
-            <div
-              className="px-4 sm:px-6 pb-8 pt-4 flex flex-col items-center justify-center gap-3 text-center"
-              role="status"
-              aria-live="polite"
-            >
-              <Loader2
-                className="w-7 h-7 text-[#3182F6] animate-spin"
-                aria-hidden="true"
+      {/* ── 메인 마이페이지 영역 (2열 가로 레이아웃) ── */}
+      <main role="main" className="w-full max-w-[860px]">
+        {isAuthLoading ? (
+          /* ── 인증 상태 확인 중 로딩 화면 ── */
+          <Card className="w-full px-6 py-14 flex flex-col items-center justify-center gap-3 text-center">
+            <Loader2
+              className="w-7 h-7 text-[#3182F6] animate-spin"
+              aria-hidden="true"
+            />
+            <p className="text-[13.5px] font-medium text-[#6B7684]">
+              로그인 정보를 확인하고 있어요...
+            </p>
+          </Card>
+        ) : user ? (
+          /* ── 로그인 완료 상태: 좌측 프로필 카드 + 우측 링크 관리 2열 가로 레이아웃 ── */
+          <div className="grid grid-cols-1 md:grid-cols-[310px_1fr] gap-5 items-start">
+            {/* 좌측: 내 프로필 카드 */}
+            <Card className="w-full">
+              <ProfileHeader
+                displayName={displayUserName}
+                email={displayUserEmail}
+                bio={displayUserBio}
+                avatarUrl={displayUserAvatar}
+                onEditProfile={() => setIsEditProfileOpen(true)}
               />
-              <p className="text-[13.5px] font-medium text-[#6B7684]">
-                로그인 정보를 확인하고 있어요...
-              </p>
-            </div>
-          ) : user ? (
-            /* ── 로그인 완료 상태: 개인화된 유저 프로필 액션 및 링크 관리 화면 ── */
-            <>
+
               <ProfileActions
                 onCopyEmail={handleCopyEmail}
                 githubUrl={DEFAULT_PROFILE_DATA.socialLinks.github}
                 blogUrl={DEFAULT_PROFILE_DATA.socialLinks.blog}
                 portfolioUrl={DEFAULT_PROFILE_DATA.socialLinks.portfolio}
               />
+            </Card>
 
+            {/* 우측: 링크 추가 및 관리 카드 */}
+            <Card className="w-full pt-5 sm:pt-6">
               <AddLinkDialog
                 onAddLink={handleAddLink}
                 isAdding={addLinkMutation.isPending}
@@ -489,15 +498,15 @@ export default function HomePage() {
                 onUpdateLink={handleUpdateLink}
                 onDeleteLink={handleDeleteLink}
               />
-            </>
-          ) : (
-            /* ── 비로그인 상태: 로그인 이후 사용 가능 안내 화면 ── */
+            </Card>
+          </div>
+        ) : (
+          /* ── 비로그인 상태: 로그인 이후 사용 가능 안내 화면 ── */
+          <Card className="w-full max-w-[460px] mx-auto">
             <section
               aria-label="로그인 안내"
-              className="px-4 sm:px-6 pb-7 pt-1 flex flex-col items-center text-center"
+              className="px-5 sm:px-7 py-8 flex flex-col items-center text-center"
             >
-              <Separator className="mb-6" />
-
               <div className="w-14 h-14 rounded-full bg-[#E8F3FF] flex items-center justify-center mb-4">
                 <Lock className="w-6 h-6 text-[#3182F6]" aria-hidden="true" />
               </div>
@@ -552,9 +561,9 @@ export default function HomePage() {
                 )}
               </Button>
             </section>
-          )}
-        </main>
-      </Card>
+          </Card>
+        )}
+      </main>
 
       {/* ── 푸터 영역 ── */}
       <footer className="mt-5 sm:mt-6 flex flex-col items-center gap-0.5">

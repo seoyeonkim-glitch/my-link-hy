@@ -66,10 +66,12 @@ export function GoogleIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-export function ProfileHeader({
+/**
+ * 마이페이지 상단 네비게이션 바 (가로형)
+ */
+export function MyPageTopBar({
   displayName,
   email,
-  bio,
   avatarUrl,
   isLoggedIn = false,
   isAuthActionLoading = false,
@@ -79,224 +81,245 @@ export function ProfileHeader({
   onPreviewPage,
   onCopyPageLink,
   onShare,
-}: ProfileHeaderProps) {
+}: Omit<ProfileHeaderProps, "bio">) {
   const router = useRouter();
   const personalPageHref = `/${encodeURIComponent(displayName)}`;
 
   return (
-    <header aria-label="프로필 정보" className="px-4 sm:px-6 pt-5 sm:pt-6 pb-4">
-      {/* 상단 바: 좌측 MyLink & 마이페이지 Primary 배지 + 우측 내 페이지, 프로필 드롭다운 및 공유 버튼 */}
-      <div className="flex items-center justify-between gap-2 mb-4 sm:mb-5">
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className="text-[15px] sm:text-[16px] font-extrabold tracking-[-0.02em] text-[#191F28] whitespace-nowrap">
-            MyLink
-          </span>
-          <span className="inline-flex items-center justify-center rounded-full bg-[#3182F6] px-2.5 py-0.5 text-[11px] font-bold text-white whitespace-nowrap shrink-0 shadow-[0_2px_6px_rgba(49,130,246,0.28)]">
-            마이페이지
-          </span>
-        </div>
+    <header
+      aria-label="마이페이지 상단 바"
+      className="w-full max-w-[860px] mb-5 rounded-[20px] bg-white px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 border border-[#E5E8EB]/80"
+    >
+      {/* 좌측: MyLink 로고 + 마이페이지 프라이머리 배지 */}
+      <div className="flex items-center gap-2 shrink-0">
+        <Link
+          href="/"
+          className="text-[16px] sm:text-[17px] font-extrabold tracking-[-0.02em] text-[#191F28] whitespace-nowrap"
+        >
+          MyLink
+        </Link>
+        <span className="inline-flex items-center justify-center rounded-full bg-[#3182F6] px-2.5 py-0.5 text-[11px] font-bold text-white whitespace-nowrap shrink-0">
+          마이페이지
+        </span>
+      </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
-          {isLoggedIn ? (
-            <>
-              <Link
-                href={personalPageHref}
-                aria-label={`${displayName} 개인 페이지로 이동`}
-                className="shrink-0"
+      {/* 우측: 내 페이지 프라이머리 버튼 + 프로필 드롭다운(또는 Google 로그인) + 공유 버튼 */}
+      <div className="flex items-center gap-2 shrink-0">
+        {isLoggedIn ? (
+          <>
+            <Link
+              href={personalPageHref}
+              aria-label={`${displayName} 개인 페이지로 이동`}
+            >
+              <Button
+                type="button"
+                variant="default"
+                size="sm"
+                tabIndex={-1}
+                className="h-9 rounded-full px-3.5 text-[12.5px] font-bold gap-1.5 whitespace-nowrap"
               >
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  tabIndex={-1}
-                  className="h-8 rounded-full px-3 text-[12px] font-bold gap-1 whitespace-nowrap shrink-0"
-                >
-                  <ExternalLink className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                  <span>내 페이지</span>
-                </Button>
-              </Link>
+                <ExternalLink className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+                <span>내 페이지</span>
+              </Button>
+            </Link>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  disabled={isAuthActionLoading}
-                  aria-label="프로필 메뉴 열기"
-                  className="inline-flex items-center gap-1.5 h-8 rounded-full bg-[#F2F4F6] hover:bg-[#E5E8EB] pl-1 pr-2.5 text-[12px] font-semibold text-[#191F28] border border-[#E5E8EB]/70 transition-colors whitespace-nowrap shrink-0"
-                >
-                  <Avatar className="w-6 h-6 shrink-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                disabled={isAuthActionLoading}
+                aria-label="프로필 메뉴 열기"
+                className="inline-flex items-center gap-2 h-9 rounded-full bg-[#F2F4F6] hover:bg-[#E5E8EB] pl-1.5 pr-3 text-[12.5px] font-semibold text-[#191F28] border border-[#E5E8EB]/70 transition-colors whitespace-nowrap"
+              >
+                <Avatar className="w-6 h-6">
+                  <AvatarImage
+                    src={avatarUrl}
+                    alt={`${displayName} 아바타`}
+                    fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
+                  />
+                </Avatar>
+                <span className="max-w-[110px] truncate">{displayName}</span>
+                {isAuthActionLoading ? (
+                  <Loader2
+                    className="w-3.5 h-3.5 animate-spin text-[#6B7684] shrink-0"
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <ChevronDown
+                    className="w-3.5 h-3.5 text-[#6B7684] shrink-0"
+                    aria-hidden="true"
+                  />
+                )}
+              </DropdownMenuTrigger>
+
+              <DropdownMenuContent align="end" sideOffset={8}>
+                {/* 상단 유저 계정 요약 */}
+                <div className="flex items-center gap-2.5 px-3 py-2.5">
+                  <Avatar className="w-9 h-9 shrink-0">
                     <AvatarImage
                       src={avatarUrl}
-                      alt={`${displayName} 아바타`}
+                      alt={`${displayName} 프로필 사진`}
                       fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
                     />
                   </Avatar>
-                  <span className="max-w-[76px] truncate">{displayName}</span>
-                  {isAuthActionLoading ? (
-                    <Loader2
-                      className="w-3.5 h-3.5 animate-spin text-[#6B7684] shrink-0"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <ChevronDown
-                      className="w-3.5 h-3.5 text-[#6B7684] shrink-0"
-                      aria-hidden="true"
-                    />
-                  )}
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent align="end" sideOffset={8}>
-                  {/* 상단 유저 계정 요약 */}
-                  <div className="flex items-center gap-2.5 px-3 py-2.5">
-                    <Avatar className="w-9 h-9 shrink-0">
-                      <AvatarImage
-                        src={avatarUrl}
-                        alt={`${displayName} 프로필 사진`}
-                        fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
-                      />
-                    </Avatar>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[13.5px] font-bold text-[#191F28] truncate">
-                        {displayName}
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[13.5px] font-bold text-[#191F28] truncate">
+                      {displayName}
+                    </p>
+                    {email && (
+                      <p className="text-[11.5px] font-medium text-[#8B95A1] truncate">
+                        {email}
                       </p>
-                      {email && (
-                        <p className="text-[11.5px] font-medium text-[#8B95A1] truncate">
-                          {email}
-                        </p>
-                      )}
-                    </div>
+                    )}
                   </div>
+                </div>
 
-                  <DropdownMenuSeparator />
+                <DropdownMenuSeparator />
 
-                  {/* 개인별 페이지 이동, 프로필 수정, 미리보기 & 링크 복사 액션 */}
-                  <DropdownMenuGroup>
-                    <DropdownMenuItem
-                      onClick={() => router.push(personalPageHref)}
-                    >
-                      <ExternalLink
-                        className="w-4 h-4 text-[#3182F6] shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span>내 개인 페이지 이동 (/{displayName})</span>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={onEditProfile}>
-                      <Pencil
-                        className="w-4 h-4 text-[#4E5968] shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span>프로필 수정하기</span>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={onPreviewPage}>
-                      <Eye
-                        className="w-4 h-4 text-[#4E5968] shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span>내 페이지 미리보기</span>
-                    </DropdownMenuItem>
-
-                    <DropdownMenuItem onClick={onCopyPageLink}>
-                      <Copy
-                        className="w-4 h-4 text-[#4E5968] shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span>내 페이지 링크 복사</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuGroup>
-
-                  <DropdownMenuSeparator />
-
-                  {/* 로그아웃 액션 */}
+                {/* 개인별 페이지 이동, 프로필 수정, 미리보기 & 링크 복사 액션 */}
+                <DropdownMenuGroup>
                   <DropdownMenuItem
-                    onClick={onLogout}
-                    className="text-[#F04452] hover:bg-[#FFF0F1] data-[highlighted]:bg-[#FFF0F1]"
+                    onClick={() => router.push(personalPageHref)}
                   >
-                    <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
-                    <span>로그아웃</span>
+                    <ExternalLink
+                      className="w-4 h-4 text-[#3182F6] shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span>내 개인 페이지 이동 (/{displayName})</span>
                   </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={isAuthActionLoading}
-              onClick={onGoogleLogin}
-              aria-label="구글 계정으로 로그인"
-              className="h-9 rounded-full px-3.5 text-[12.5px] font-semibold border-[#E5E8EB] bg-white text-[#191F28] hover:bg-[#F2F4F6] whitespace-nowrap shrink-0"
-            >
-              {isAuthActionLoading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
-              ) : (
-                <>
-                  <GoogleIcon className="w-3.5 h-3.5" />
-                  Google 로그인
-                </>
-              )}
-            </Button>
-          )}
 
-          <Button
-            type="button"
-            variant="iconCircle"
-            size="iconSm"
-            onClick={onShare}
-            aria-label="프로필 공유하기"
-            title="프로필 링크 공유하기"
-            className="h-8 w-8 shrink-0"
-          >
-            <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
-          </Button>
-        </div>
-      </div>
+                  <DropdownMenuItem onClick={onEditProfile}>
+                    <Pencil
+                      className="w-4 h-4 text-[#4E5968] shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span>프로필 수정하기</span>
+                  </DropdownMenuItem>
 
-      {/* 로그인 시 중앙 아바타 + 유저 정보(이름, 이메일/계정, 소개글) 노출 */}
-      {isLoggedIn && (
-        <div className="flex flex-col items-center text-center">
-          <div className="relative mb-3.5 rounded-full p-1 bg-gradient-to-tr from-[#E8F3FF] via-[#F2F4F6] to-[#E8F3FF] border border-[#E5E8EB]/80">
-            <Avatar className="w-[76px] h-[76px] sm:w-[82px] sm:h-[82px]">
-              <AvatarImage
-                src={avatarUrl}
-                alt={`${displayName} 프로필 사진`}
-                fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
-              />
-            </Avatar>
-            {/* 온라인 상태 뱃지 */}
-            <span
-              className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-[#34C759] ring-2 ring-white"
-              aria-label="온라인"
-              title="로그인됨"
-            />
-          </div>
+                  <DropdownMenuItem onClick={onPreviewPage}>
+                    <Eye
+                      className="w-4 h-4 text-[#4E5968] shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span>내 페이지 미리보기</span>
+                  </DropdownMenuItem>
 
-          <h1 className="text-[19px] sm:text-[20px] font-bold leading-[1.3] tracking-[-0.015em] text-[#191F28] mb-0.5">
-            {displayName}
-          </h1>
+                  <DropdownMenuItem onClick={onCopyPageLink}>
+                    <Copy
+                      className="w-4 h-4 text-[#4E5968] shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span>내 페이지 링크 복사</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
 
-          {email && (
-            <p className="text-[12.5px] font-medium text-[#8B95A1] mb-2">
-              {email}
-            </p>
-          )}
+                <DropdownMenuSeparator />
 
-          <p className="text-[12.5px] sm:text-[13px] font-normal leading-[1.5] tracking-[-0.005em] text-[#6B7684] break-keep px-2 mb-3">
-            {bio}
-          </p>
-
+                {/* 로그아웃 액션 */}
+                <DropdownMenuItem
+                  onClick={onLogout}
+                  className="text-[#F04452] hover:bg-[#FFF0F1] data-[highlighted]:bg-[#FFF0F1]"
+                >
+                  <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
+                  <span>로그아웃</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </>
+        ) : (
           <Button
             type="button"
             variant="default"
             size="sm"
-            onClick={onEditProfile}
-            className="h-8 rounded-full px-3.5 text-[12px] font-bold gap-1.5 whitespace-nowrap"
+            disabled={isAuthActionLoading}
+            onClick={onGoogleLogin}
+            aria-label="구글 계정으로 로그인"
+            className="h-9 rounded-full px-3.5 text-[12.5px] font-bold whitespace-nowrap"
           >
-            <Pencil className="w-3 h-3" aria-hidden="true" />
-            프로필 수정
+            {isAuthActionLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" />
+            ) : (
+              <>
+                <span className="w-4 h-4 rounded-full bg-white flex items-center justify-center shrink-0">
+                  <GoogleIcon className="w-3 h-3" />
+                </span>
+                Google 로그인
+              </>
+            )}
           </Button>
-        </div>
-      )}
+        )}
+
+        <Button
+          type="button"
+          variant="iconCircle"
+          size="iconSm"
+          onClick={onShare}
+          aria-label="프로필 공유하기"
+          title="프로필 링크 공유하기"
+        >
+          <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+        </Button>
+      </div>
     </header>
+  );
+}
+
+/**
+ * 마이페이지 좌측 프로필 요약 섹션
+ */
+export function ProfileHeader({
+  displayName,
+  email,
+  bio,
+  avatarUrl,
+  onEditProfile,
+}: Pick<
+  ProfileHeaderProps,
+  "displayName" | "email" | "bio" | "avatarUrl" | "onEditProfile"
+>) {
+  return (
+    <section
+      aria-label="프로필 정보"
+      className="px-5 sm:px-6 pt-6 pb-4 flex flex-col items-center text-center"
+    >
+      <div className="relative mb-3.5 rounded-full p-1 bg-gradient-to-tr from-[#E8F3FF] via-[#F2F4F6] to-[#E8F3FF] border border-[#E5E8EB]/80">
+        <Avatar className="w-[76px] h-[76px] sm:w-[84px] sm:h-[84px]">
+          <AvatarImage
+            src={avatarUrl}
+            alt={`${displayName} 프로필 사진`}
+            fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
+          />
+        </Avatar>
+        {/* 온라인 상태 뱃지 */}
+        <span
+          className="absolute bottom-1 right-1 w-3.5 h-3.5 rounded-full bg-[#34C759] ring-2 ring-white"
+          aria-label="온라인"
+          title="로그인됨"
+        />
+      </div>
+
+      <h1 className="text-[19px] sm:text-[20px] font-bold leading-[1.3] tracking-[-0.015em] text-[#191F28] mb-0.5">
+        {displayName}
+      </h1>
+
+      {email && (
+        <p className="text-[12.5px] font-medium text-[#8B95A1] mb-2">
+          {email}
+        </p>
+      )}
+
+      <p className="text-[12.5px] sm:text-[13px] font-normal leading-[1.5] tracking-[-0.005em] text-[#6B7684] break-keep px-2 mb-3.5">
+        {bio}
+      </p>
+
+      <Button
+        type="button"
+        variant="default"
+        size="sm"
+        onClick={onEditProfile}
+        className="h-8 rounded-full px-4 text-[12px] font-bold gap-1.5 whitespace-nowrap"
+      >
+        <Pencil className="w-3 h-3" aria-hidden="true" />
+        프로필 수정
+      </Button>
+    </section>
   );
 }
