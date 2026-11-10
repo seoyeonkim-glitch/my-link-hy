@@ -3,88 +3,32 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─────────────────────────────────────────────────────────────
-    // 공통 헬퍼 함수
-    // ─────────────────────────────────────────────────────────────
-
-    // 1. 로그인 여부 및 본인(소유자) UID 일치 확인
-    function isOwner(userId) {
-      return request.auth != null && request.auth.uid == userId;
-    }
-
-    // 2. 프로필 편집(Profile Edit) 데이터 유효성 및 위변조 검증
-    function isValidProfile(userId) {
-      let data = request.resource.data;
-      return (
-        // uid 필드가 포함될 경우 반드시 본인 userId와 일치해야 함 (ID 스푸핑 방지)
-        (!('uid' in data) || data.uid == userId) &&
-        // displayName 검증: 문자열, 1~20자 이내
-        (!('displayName' in data) || (data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 20)) &&
-        // bio(한 줄 소개) 검증: 문자열, 80자 이내
-        (!('bio' in data) || (data.bio is string && data.bio.size() <= 80)) &&
-        // photoURL(프로필 이미지) 검증: 문자열, 500자 이내
-        (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() <= 500)) &&
-        // email 검증: 문자열, 100자 이내
-        (!('email' in data) || (data.email is string && data.email.size() <= 100))
-      );
-    }
-
-    // 3. 링크 추가/수정(Link CRUD) 데이터 유효성 검증
-    function isValidLink() {
-      let data = request.resource.data;
-      return (
-        data.title is string &&
-        data.title.size() >= 1 &&
-        data.title.size() <= 40 &&
-        data.url is string &&
-        data.url.matches('^https?://.*')
-      );
-    }
-
-    // ─────────────────────────────────────────────────────────────
-    // 1. 유저 루트 문서: users/{userId}
-    //    (프로필 편집 저장, /[displayName] 유저 검색, displayName 중복 확인에 사용)
-    // ─────────────────────────────────────────────────────────────
+    // 1. 유저 문서 및 프로필 편집 경로: users/{userId}
+    // (/[displayName] 공개 조회, displayName 중복 확인, 내 프로필 편집 저장)
     match /users/{userId} {
-      // 읽기: 방문자 페이지(/[displayName]) 조회 및 displayName 중복 확인을 위해 누구나 가능
+      // 읽기(get, list): 로그인하지 않은 상태에서도 누구나 읽기 가능
       allow read: if true;
 
-      // 쓰기(생성/수정): 로그인 + 본인 ID 일치 + 프로필 데이터 유효성 통과 시에만 허용
-      allow create, update: if isOwner(userId) && isValidProfile(userId);
-      allow delete: if isOwner(userId);
+      // 쓰기(create, update, delete): 로그인 상태이고 본인 UID가 일치할 때만 가능
+      allow write: if request.auth != null && request.auth.uid == userId;
 
-      // ───────────────────────────────────────────────────────────
-      // 2. 유저 프로필 하위 컬렉션: users/{userId}/profile/{docId}
-      // ───────────────────────────────────────────────────────────
-      match /profile/{docId=**} {
-        // 읽기: 누구나 가능
-        allow read: if true;
-
-        // 쓰기: 로그인 + 본인 ID 일치 + 프로필 데이터 유효성 통과 시에만 허용
-        allow create, update: if isOwner(userId) && isValidProfile(userId);
-        allow delete: if isOwner(userId);
-      }
-
-      // ───────────────────────────────────────────────────────────
-      // 3. 유저 링크 하위 컬렉션: users/{userId}/links/{linkId}
-      // ───────────────────────────────────────────────────────────
+      // 2. 유저 링크 경로: users/{userId}/links/{linkId}
       match /links/{linkId} {
-        // 읽기: 누구나 가능 (방문자 페이지 및 미리보기 조회)
+        // 읽기: 로그인하지 않은 상태에서도 누구나 읽기 가능
         allow read: if true;
 
-        // 생성/수정: 로그인 + 본인 ID 일치 + 링크 제목/URL 유효성 통과 시에만 허용
-        allow create, update: if isOwner(userId) && isValidLink();
-
-        // 삭제: 로그인 + 본인 ID 일치 시에만 허용
-        allow delete: if isOwner(userId);
+        // 쓰기(추가·수정·삭제): 로그인 상태이고 본인 UID가 일치할 때만 가능
+        allow write: if request.auth != null && request.auth.uid == userId;
       }
-    }
 
-    // ─────────────────────────────────────────────────────────────
-    // 4. 그 외 명시되지 않은 모든 경로 기본 차단 (Default Deny)
-    // ─────────────────────────────────────────────────────────────
-    match /{document=**} {
-      allow read, write: if false;
+      // 3. 유저 프로필 하위 경로: users/{userId}/profile/{profileId}
+      match /profile/{profileId} {
+        // 읽기: 로그인하지 않은 상태에서도 누구나 읽기 가능
+        allow read: if true;
+
+        // 쓰기(프로필 편집): 로그인 상태이고 본인 UID가 일치할 때만 가능
+        allow write: if request.auth != null && request.auth.uid == userId;
+      }
     }
   }
 }
