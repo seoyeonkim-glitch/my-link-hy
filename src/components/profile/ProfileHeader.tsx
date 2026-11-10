@@ -90,26 +90,23 @@ export function MyPageTopBar({
       aria-label="마이페이지 상단 바"
       className="w-full max-w-[860px] mb-5 rounded-[20px] bg-white px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 border border-[#E5E8EB]/80"
     >
-      {/* 좌측: MyLink 로고 + 마이페이지 프라이머리 배지 */}
-      <div className="flex items-center gap-2 shrink-0">
+      {/* 좌측: MyLink 로고 */}
+      <div className="flex items-center shrink-0">
         <Link
           href="/"
           className="text-[16px] sm:text-[17px] font-extrabold tracking-[-0.02em] text-[#191F28] whitespace-nowrap"
         >
           MyLink
         </Link>
-        <span className="inline-flex items-center justify-center rounded-full bg-[#3182F6] px-2.5 py-0.5 text-[11px] font-bold text-white whitespace-nowrap shrink-0">
-          마이페이지
-        </span>
       </div>
 
-      {/* 우측: 내 페이지 프라이머리 버튼 + 프로필 드롭다운(또는 Google 로그인) + 공유 버튼 */}
+      {/* 우측: 마이페이지 이동 버튼 + 프로필 드롭다운(또는 Google 로그인) + 공유 버튼 */}
       <div className="flex items-center gap-2 shrink-0">
         {isLoggedIn ? (
           <>
             <Link
               href={personalPageHref}
-              aria-label={`${displayName} 개인 페이지로 이동`}
+              aria-label={`${displayName} 마이페이지로 이동`}
             >
               <Button
                 type="button"
@@ -119,7 +116,7 @@ export function MyPageTopBar({
                 className="h-9 rounded-full px-3.5 text-[12.5px] font-bold gap-1.5 whitespace-nowrap"
               >
                 <ExternalLink className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-                <span>내 페이지</span>
+                <span>마이페이지</span>
               </Button>
             </Link>
 
@@ -174,7 +171,7 @@ export function MyPageTopBar({
 
                 <DropdownMenuSeparator />
 
-                {/* 개인별 페이지 이동, 프로필 수정, 미리보기 & 링크 복사 액션 */}
+                {/* 개인별 마이페이지 이동, 프로필 수정, 미리보기 & 링크 복사 액션 */}
                 <DropdownMenuGroup>
                   <DropdownMenuItem
                     onClick={() => router.push(personalPageHref)}
@@ -183,7 +180,7 @@ export function MyPageTopBar({
                       className="w-4 h-4 text-[#3182F6] shrink-0"
                       aria-hidden="true"
                     />
-                    <span>내 개인 페이지 이동 (/{displayName})</span>
+                    <span>마이페이지 이동 (/{displayName})</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem onClick={onEditProfile}>
