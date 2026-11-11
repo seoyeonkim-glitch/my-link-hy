@@ -101,12 +101,14 @@ export function PreviewProfileDialog({
                   <Badge
                     variant="secondary"
                     className="h-[20px] px-2 text-[11px] font-semibold gap-1 text-[#4E5968] tabular-nums"
+                    aria-label={`전체 클릭 ${totalClicks.toLocaleString()}회`}
+                    title={`전체 클릭 ${totalClicks.toLocaleString()}회`}
                   >
                     <MousePointerClick
                       className="w-3 h-3 text-[#3182F6]"
                       aria-hidden="true"
                     />
-                    총 {totalClicks.toLocaleString()}회
+                    {totalClicks.toLocaleString()}
                   </Badge>
                 )}
                 <Badge variant="count">{links.length}</Badge>
@@ -141,12 +143,16 @@ export function PreviewProfileDialog({
                               <p className="text-[13.5px] font-bold text-[#191F28] truncate">
                                 {link.title}
                               </p>
-                              <span className="inline-flex items-center gap-1 rounded-full bg-[#F2F4F6] px-2 py-0.5 text-[10.5px] font-semibold text-[#4E5968] tabular-nums shrink-0">
+                              <span
+                                className="inline-flex items-center gap-1 rounded-full bg-[#F2F4F6] px-2 py-0.5 text-[10.5px] font-semibold text-[#4E5968] tabular-nums shrink-0"
+                                aria-label={`클릭 ${clickCount.toLocaleString()}회`}
+                                title={`클릭 ${clickCount.toLocaleString()}회`}
+                              >
                                 <MousePointerClick
                                   className="w-3 h-3 text-[#3182F6]"
                                   aria-hidden="true"
                                 />
-                                {clickCount.toLocaleString()}회
+                                {clickCount.toLocaleString()}
                               </span>
                             </div>
                             <p className="text-[11.5px] text-[#8B95A1] truncate">

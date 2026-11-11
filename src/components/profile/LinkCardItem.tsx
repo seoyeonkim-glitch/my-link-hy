@@ -315,10 +315,7 @@ export function LinkCardItem({
                   className="w-3 h-3 text-[#3182F6]"
                   aria-hidden="true"
                 />
-                <span>
-                  <span className="hidden sm:inline">클릭 </span>
-                  {clickCount.toLocaleString()}회
-                </span>
+                {clickCount.toLocaleString()}
               </span>
             </div>
             {subtitle && <CardDescription>{subtitle}</CardDescription>}

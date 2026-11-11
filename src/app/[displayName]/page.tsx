@@ -358,12 +358,13 @@ export default function UserPublicProfilePage() {
                     variant="secondary"
                     className="h-[20px] px-2 text-[11px] font-semibold gap-1 text-[#4E5968] tabular-nums"
                     aria-label={`전체 클릭 ${totalClicks.toLocaleString()}회`}
+                    title={`전체 클릭 ${totalClicks.toLocaleString()}회`}
                   >
                     <MousePointerClick
                       className="w-3 h-3 text-[#3182F6]"
                       aria-hidden="true"
                     />
-                    총 {totalClicks.toLocaleString()}회
+                    {totalClicks.toLocaleString()}
                   </Badge>
                 )}
                 <Badge variant="count">{links.length}</Badge>
@@ -433,10 +434,7 @@ export default function UserPublicProfilePage() {
                                     className="w-3 h-3 text-[#3182F6]"
                                     aria-hidden="true"
                                   />
-                                  <span>
-                                    <span className="hidden sm:inline">클릭 </span>
-                                    {clickCount.toLocaleString()}회
-                                  </span>
+                                  {clickCount.toLocaleString()}
                                 </span>
                               </div>
                               <CardDescription className="mt-0.5">
