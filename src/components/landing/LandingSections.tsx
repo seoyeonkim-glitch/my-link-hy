@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
-  ArrowUpRight,
+  ArrowRight,
   BarChart3,
   ChevronDown,
   Code2,
@@ -26,12 +25,10 @@ import { GoogleIcon } from "@/components/profile/ProfileHeader";
 import { cn } from "@/lib/utils";
 
 export interface LandingSectionsProps {
-  isLoggedIn: boolean;
-  displayName: string;
-  linkCount: number;
   isAuthActionLoading?: boolean;
+  isLoggedInPreview?: boolean;
   onGoogleLogin: () => void;
-  onCopyPageLink: () => void;
+  onExitPreview?: () => void;
 }
 
 type PersonaKey = "developer" | "designer" | "student";
@@ -58,13 +55,13 @@ interface PersonaPreset {
   links: DemoLinkItem[];
 }
 
-// 인터랙티브 체험 카드용 페르소나 프리셋
+// 인터랙티브 체험 카드용 예시 페르소나 프리셋 (실제 유저 개인정보 미사용)
 const PERSONA_PRESETS: Record<PersonaKey, PersonaPreset> = {
   developer: {
     key: "developer",
     label: "개발자",
-    defaultName: "김서연",
-    defaultHandle: "seoyeon",
+    defaultName: "김개발",
+    defaultHandle: "dev_kim",
     roleBadge: "프론트엔드",
     bio: "사용자 경험을 설계하고 정교하게 구현해요.",
     avatarBgClass: "bg-[#E8F3FF]",
@@ -240,12 +237,10 @@ const FAQ_ITEMS = [
 ] as const;
 
 export function LandingSections({
-  isLoggedIn,
-  displayName,
-  linkCount,
   isAuthActionLoading = false,
+  isLoggedInPreview = false,
   onGoogleLogin,
-  onCopyPageLink,
+  onExitPreview,
 }: LandingSectionsProps) {
   const [activePersona, setActivePersona] = useState<PersonaKey>("developer");
   const [customHandle, setCustomHandle] = useState("");
@@ -280,8 +275,6 @@ export function LandingSections({
     0
   );
 
-  const personalPageHref = `/${encodeURIComponent(displayName)}`;
-
   const handleDemoLinkClick = (id: string) => {
     setDemoExtraClicks((prev) => ({
       ...prev,
@@ -296,13 +289,129 @@ export function LandingSections({
   };
 
   return (
-    <div className="w-full flex flex-col gap-5 mt-5">
-      {/* ── 1. 인터랙티브 체험 섹션 (기존 히어로와 동일한 310px + 1fr 2단 그리드) ── */}
+    <div className="w-full flex flex-col gap-5">
+      {/* 로그인 상태에서 랜딩 화면 미리보기 시 돌아가기 배너 */}
+      {isLoggedInPreview && onExitPreview && (
+        <div className="rounded-[18px] bg-[#E8F3FF] border border-[#3182F6]/25 px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-[#191F28]">
+            <Sparkles
+              className="w-4 h-4 text-[#3182F6] shrink-0"
+              aria-hidden="true"
+            />
+            <span>
+              비로그인 방문자에게 보이는 랜딩 페이지를 미리 보고 있어요.
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={onExitPreview}
+            className="h-8 rounded-full px-3.5 text-[12px] font-bold shrink-0 self-start sm:self-auto"
+          >
+            내 링크 관리로 돌아가기
+          </Button>
+        </div>
+      )}
+
+      {/* ── 1. 깔끔한 서비스 랜딩 히어로 섹션 (개인 프사 미노출 · One Link 스타일 × TDS 카드) ── */}
+      <section aria-label="마이링크 서비스 히어로">
+        <Card className="w-full px-5 py-10 sm:px-10 sm:py-14 flex flex-col items-center text-center">
+          <Badge
+            variant="brand"
+            className="h-7 px-3 text-[12px] font-bold mb-4 gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+            나만의 링크를 한 곳에
+          </Badge>
+
+          <h1 className="text-[30px] sm:text-[40px] font-extrabold leading-[1.16] tracking-[-0.03em] text-[#191F28] break-keep mb-3.5">
+            Every Link in{" "}
+            <span className="text-[#3182F6]">One Link.</span>
+          </h1>
+
+          <p className="text-[14px] sm:text-[15.5px] leading-[1.6] text-[#6B7684] max-w-[440px] break-keep mb-6">
+            GitHub, 블로그, 포트폴리오까지.
+            <br />
+            흩어진 모든 링크를 깔끔한 한 페이지에 담아보세요.
+          </p>
+
+          {isLoggedInPreview && onExitPreview ? (
+            <Button
+              type="button"
+              variant="default"
+              size="lg"
+              onClick={onExitPreview}
+              className="h-12 rounded-[14px] px-7 text-[15px] font-bold gap-2"
+            >
+              내 링크 관리로 이동하기
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="default"
+              size="lg"
+              disabled={isAuthActionLoading}
+              onClick={onGoogleLogin}
+              className="h-12 rounded-[14px] px-7 text-[15px] font-bold gap-2.5"
+            >
+              {isAuthActionLoading ? (
+                <Loader2
+                  className="w-4 h-4 animate-spin"
+                  aria-hidden="true"
+                />
+              ) : (
+                <>
+                  <span className="w-5 h-5 rounded-full bg-white flex items-center justify-center shrink-0">
+                    <GoogleIcon className="w-3.5 h-3.5" />
+                  </span>
+                  Google로 시작하기
+                </>
+              )}
+            </Button>
+          )}
+
+          {/* 추상화된 MyLink 미니 카드 일러스트 (개인 계정 사진 없이 깔끔한 프리뷰 표현) */}
+          <div
+            aria-hidden="true"
+            className="mt-9 sm:mt-11 w-full max-w-[330px] rounded-[22px] bg-white border border-[#E5E8EB] p-4 sm:p-5 shadow-[0_14px_34px_rgba(25,31,40,0.06)] -rotate-2 hover:rotate-0 transition-transform duration-300 text-left"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-full bg-[#F2F4F6] border border-[#E5E8EB]/80 shrink-0" />
+              <div className="flex flex-col gap-1.5 flex-1">
+                <div className="h-2.5 w-24 rounded-full bg-[#E5E8EB]" />
+                <div className="h-2 w-36 rounded-full bg-[#F2F4F6]" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="rounded-[12px] bg-[#E8F3FF] px-3 py-2.5 flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#3182F6] shrink-0" />
+                <span className="h-2.5 w-32 rounded-full bg-[#3182F6]/30" />
+                <span className="ml-auto h-3.5 w-9 rounded-full bg-white/90" />
+              </div>
+
+              <div className="rounded-[12px] bg-[#F9FAFB] border border-[#E5E8EB]/80 px-3 py-2.5 flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1] shrink-0" />
+                <span className="h-2.5 w-24 rounded-full bg-[#E5E8EB]" />
+              </div>
+
+              <div className="rounded-[12px] bg-[#F9FAFB] border border-[#E5E8EB]/80 px-3 py-2.5 flex items-center gap-2.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#CBD5E1] shrink-0" />
+                <span className="h-2.5 w-28 rounded-full bg-[#E5E8EB]" />
+              </div>
+            </div>
+          </div>
+        </Card>
+      </section>
+
+      {/* ── 2. 인터랙티브 체험 섹션 (310px + 1fr 반응형 2단 그리드) ── */}
       <section
         aria-label="나만의 MyLink 미리 체험하기"
         className="grid grid-cols-1 md:grid-cols-[310px_1fr] gap-5 items-stretch"
       >
-        {/* 좌측 카드 (310px): 주소 미리 입력 + 페르소나 선택 + 빠른 시작 */}
+        {/* 좌측 카드 (310px): 주소 미리 입력 + 페르소나 선택 */}
         <Card className="w-full p-5 sm:p-6 flex flex-col justify-between gap-4">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between gap-2">
@@ -409,34 +518,16 @@ export function LandingSections({
             </div>
           </div>
 
-          {/* 하단 액션 버튼 */}
-          {isLoggedIn ? (
-            <div className="flex flex-col gap-2 pt-1">
-              <Link href={personalPageHref} className="w-full">
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  tabIndex={-1}
-                  className="w-full h-10 rounded-[12px] text-[13px] font-bold gap-1.5"
-                >
-                  내 페이지 열어보기
-                  <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
-                </Button>
-              </Link>
-              <Link href="/stats" className="w-full">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  tabIndex={-1}
-                  className="w-full h-9 rounded-[12px] text-[12.5px] font-semibold text-[#4E5968] gap-1.5"
-                >
-                  <BarChart3 className="w-3.5 h-3.5" aria-hidden="true" />
-                  클릭 통계 대시보드
-                </Button>
-              </Link>
-            </div>
+          {isLoggedInPreview && onExitPreview ? (
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={onExitPreview}
+              className="w-full h-10 rounded-[12px] text-[13px] font-bold"
+            >
+              내 링크 관리로 돌아가기
+            </Button>
           ) : (
             <Button
               type="button"
@@ -503,7 +594,7 @@ export function LandingSections({
 
             <Separator />
 
-            {/* 실시간 미니 프로필 헤더 프리뷰 */}
+            {/* 실시간 미니 프로필 프리뷰 */}
             <div className="rounded-[16px] bg-[#F9FAFB] border border-[#E5E8EB] p-3 flex items-center gap-3">
               <div
                 className={cn(
@@ -530,7 +621,7 @@ export function LandingSections({
               </div>
             </div>
 
-            {/* 클릭 가능한 샘플 링크 목록 (CardListRow 디자인 통일) */}
+            {/* 클릭 가능한 샘플 링크 목록 */}
             <ul role="list" className="flex flex-col gap-2">
               {previewLinksWithCounts.map((item) => {
                 const isJustClicked = lastClickedId === item.id;
@@ -630,7 +721,7 @@ export function LandingSections({
         </Card>
       </section>
 
-      {/* ── 2. 핵심 기능 3단 Bento Grid (히어로 카드와 동일한 평면·둥글기·아이콘 톤) ── */}
+      {/* ── 3. 핵심 기능 3단 Bento Grid ── */}
       <section
         aria-label="마이링크 주요 특징"
         className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
@@ -669,7 +760,7 @@ export function LandingSections({
           </div>
           <div className="rounded-[14px] bg-[#F9FAFB] border border-[#E5E8EB] px-3 py-2.5 flex items-center justify-between gap-2">
             <span className="text-[12px] font-semibold text-[#6B7684] truncate">
-              /{displayName}
+              /my-handle
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#4E5968] shrink-0">
               <EyeOff className="w-3 h-3 text-[#8B95A1]" aria-hidden="true" />
@@ -705,12 +796,11 @@ export function LandingSections({
         </Card>
       </section>
 
-      {/* ── 3. 시작 가이드 + 자주 묻는 질문 (히어로와 동일한 310px + 1fr 2단 그리드) ── */}
+      {/* ── 4. 시작 가이드 + 자주 묻는 질문 (310px + 1fr 2단 그리드) ── */}
       <section
         aria-label="이용 방법 및 자주 묻는 질문"
         className="grid grid-cols-1 md:grid-cols-[310px_1fr] gap-5 items-stretch"
       >
-        {/* 좌측 (310px): 3단계 시작 방법 */}
         <Card className="w-full p-5 sm:p-6 flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-[13.5px] sm:text-[14px] font-bold tracking-[-0.01em] text-[#191F28]">
@@ -745,7 +835,6 @@ export function LandingSections({
           </div>
         </Card>
 
-        {/* 우측 (1fr): 인터랙티브 자주 묻는 질문 아코디언 */}
         <Card className="w-full p-5 sm:p-6 flex flex-col gap-3">
           <div className="flex items-center justify-between gap-2">
             <h2 className="text-[13.5px] sm:text-[14px] font-bold tracking-[-0.01em] text-[#191F28]">
@@ -793,45 +882,27 @@ export function LandingSections({
         </Card>
       </section>
 
-      {/* ── 4. 하단 마무리 액션 카드 ── */}
+      {/* ── 5. 하단 마무리 CTA 카드 ── */}
       <Card className="p-5 sm:p-6 bg-[#E8F3FF]/65 border-[#3182F6]/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="min-w-0">
           <h2 className="text-[16px] sm:text-[17px] font-bold tracking-[-0.015em] text-[#191F28] break-keep">
-            {isLoggedIn
-              ? "내 링크 페이지, 지금 공유해 볼까요?"
-              : "나만의 링크 페이지, 지금 바로 만들어 보세요"}
+            나만의 링크 페이지, 지금 바로 만들어 보세요
           </h2>
           <p className="text-[12.5px] sm:text-[13px] text-[#4E5968] break-keep mt-0.5">
-            {isLoggedIn
-              ? `현재 ${linkCount}개의 링크가 준비되어 있어요. 프로필 주소를 복사해 친구와 동료에게 공유해요.`
-              : "Google 로그인 후 10초 안에 첫 번째 링크를 등록할 수 있어요."}
+            Google 로그인 후 10초 안에 첫 번째 링크를 등록할 수 있어요.
           </p>
         </div>
 
-        {isLoggedIn ? (
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={onCopyPageLink}
-              className="h-10 rounded-full px-4 text-[12.5px] font-bold bg-white hover:bg-[#F2F4F6] border border-[#E5E8EB]"
-            >
-              내 페이지 주소 복사
-            </Button>
-            <Link href={personalPageHref}>
-              <Button
-                type="button"
-                variant="default"
-                size="sm"
-                tabIndex={-1}
-                className="h-10 rounded-full px-4 text-[12.5px] font-bold gap-1"
-              >
-                개인별 페이지 보기
-                <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
-              </Button>
-            </Link>
-          </div>
+        {isLoggedInPreview && onExitPreview ? (
+          <Button
+            type="button"
+            variant="default"
+            size="sm"
+            onClick={onExitPreview}
+            className="h-10 rounded-full px-5 text-[13px] font-bold shrink-0 self-start sm:self-auto"
+          >
+            내 링크 관리로 돌아가기
+          </Button>
         ) : (
           <Button
             type="button"
