@@ -94,11 +94,12 @@ export function MyPageTopBar({
       aria-label="마이페이지 상단 바"
       className="w-full max-w-[860px] mb-5 rounded-[20px] bg-white px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 border border-[#E5E8EB]/80"
     >
-      {/* 좌측: MyLink 로고 */}
+      {/* 좌측: MyLink 헤더 타이틀 (클릭 시 루트 페이지 '/'로 이동) */}
       <div className="flex items-center shrink-0">
         <Link
           href="/"
-          className="text-[16px] sm:text-[17px] font-extrabold tracking-[-0.02em] text-[#191F28] whitespace-nowrap"
+          aria-label="MyLink 루트 페이지로 이동"
+          className="inline-flex items-center rounded-md text-[16px] sm:text-[17px] font-extrabold tracking-[-0.02em] text-[#191F28] whitespace-nowrap hover:opacity-75 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3182F6]/40"
         >
           MyLink
         </Link>
