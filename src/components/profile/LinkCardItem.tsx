@@ -13,6 +13,7 @@ import {
   Globe,
   Loader2,
   Mail,
+  MousePointerClick,
   Pencil,
   Trash2,
   X,
@@ -113,6 +114,7 @@ function getIconConfig(icon?: LinkIconType, url?: string) {
 export interface LinkCardItemProps {
   link: LinkItem;
   isEditable?: boolean;
+  onLinkClick?: (id: string) => void;
   onUpdateLink: (
     id: string,
     updatedValues: { title: string; url: string }
@@ -123,6 +125,7 @@ export interface LinkCardItemProps {
 export function LinkCardItem({
   link,
   isEditable = true,
+  onLinkClick,
   onUpdateLink,
   onDeleteLink,
 }: LinkCardItemProps) {
@@ -132,6 +135,7 @@ export function LinkCardItem({
   const { Icon, badgeClassName } = getIconConfig(link.icon, link.url);
   const isExternal = link.url.startsWith("http");
   const subtitle = link.description || link.url;
+  const clickCount = typeof link.clickCount === "number" ? link.clickCount : 0;
 
   const {
     register,
@@ -282,6 +286,7 @@ export function LinkCardItem({
           href={link.url}
           target={isExternal ? "_blank" : undefined}
           rel={isExternal ? "noopener noreferrer" : undefined}
+          onClick={() => onLinkClick?.(link.id)}
           className="flex items-center gap-3 sm:gap-3.5 flex-1 min-w-0 no-underline group"
         >
           <span
@@ -301,6 +306,20 @@ export function LinkCardItem({
               {link.badge && (
                 <Badge variant={link.badge.variant}>{link.badge.text}</Badge>
               )}
+              <span
+                className="inline-flex items-center gap-1 rounded-full bg-[#F2F4F6] px-2 py-0.5 text-[11px] font-semibold text-[#4E5968] tabular-nums shrink-0"
+                aria-label={`클릭 ${clickCount.toLocaleString()}회`}
+                title={`클릭 ${clickCount.toLocaleString()}회`}
+              >
+                <MousePointerClick
+                  className="w-3 h-3 text-[#3182F6]"
+                  aria-hidden="true"
+                />
+                <span>
+                  <span className="hidden sm:inline">클릭 </span>
+                  {clickCount.toLocaleString()}회
+                </span>
+              </span>
             </div>
             {subtitle && <CardDescription>{subtitle}</CardDescription>}
           </div>

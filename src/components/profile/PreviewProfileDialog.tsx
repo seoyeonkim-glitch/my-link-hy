@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, Copy, Eye, Globe } from "lucide-react";
+import { ChevronRight, Copy, Eye, Globe, MousePointerClick } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,11 @@ export function PreviewProfileDialog({
   links,
   onCopyLink,
 }: PreviewProfileDialogProps) {
+  const totalClicks = links.reduce(
+    (sum, item) => sum + (typeof item.clickCount === "number" ? item.clickCount : 0),
+    0
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[400px] p-0 overflow-hidden">
@@ -87,11 +92,25 @@ export function PreviewProfileDialog({
 
           {/* 방문자용 링크 리스트 */}
           <div className="w-full text-left">
-            <div className="flex items-center justify-between mb-2.5">
+            <div className="flex items-center justify-between mb-2.5 gap-2">
               <span className="text-[12.5px] font-bold text-[#191F28]">
                 🔗 링크 목록
               </span>
-              <Badge variant="count">{links.length}</Badge>
+              <div className="flex items-center gap-1.5">
+                {links.length > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="h-[20px] px-2 text-[11px] font-semibold gap-1 text-[#4E5968] tabular-nums"
+                  >
+                    <MousePointerClick
+                      className="w-3 h-3 text-[#3182F6]"
+                      aria-hidden="true"
+                    />
+                    총 {totalClicks.toLocaleString()}회
+                  </Badge>
+                )}
+                <Badge variant="count">{links.length}</Badge>
+              </div>
             </div>
 
             {links.length === 0 ? (
@@ -102,34 +121,47 @@ export function PreviewProfileDialog({
               </div>
             ) : (
               <ul className="flex flex-col gap-2">
-                {links.map((link) => (
-                  <li key={link.id}>
-                    <Link
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center justify-between gap-3 rounded-[14px] border border-[#E5E8EB] bg-white p-3 hover:bg-[#F2F4F6]/70 transition-colors"
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#E8F3FF] text-[#3182F6]">
-                          <Globe className="w-4 h-4" aria-hidden="true" />
+                {links.map((link) => {
+                  const clickCount =
+                    typeof link.clickCount === "number" ? link.clickCount : 0;
+                  return (
+                    <li key={link.id}>
+                      <Link
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between gap-3 rounded-[14px] border border-[#E5E8EB] bg-white p-3 hover:bg-[#F2F4F6]/70 transition-colors"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-[#E8F3FF] text-[#3182F6]">
+                            <Globe className="w-4 h-4" aria-hidden="true" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <p className="text-[13.5px] font-bold text-[#191F28] truncate">
+                                {link.title}
+                              </p>
+                              <span className="inline-flex items-center gap-1 rounded-full bg-[#F2F4F6] px-2 py-0.5 text-[10.5px] font-semibold text-[#4E5968] tabular-nums shrink-0">
+                                <MousePointerClick
+                                  className="w-3 h-3 text-[#3182F6]"
+                                  aria-hidden="true"
+                                />
+                                {clickCount.toLocaleString()}회
+                              </span>
+                            </div>
+                            <p className="text-[11.5px] text-[#8B95A1] truncate">
+                              {link.url}
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-[13.5px] font-bold text-[#191F28] truncate">
-                            {link.title}
-                          </p>
-                          <p className="text-[11.5px] text-[#8B95A1] truncate">
-                            {link.url}
-                          </p>
-                        </div>
-                      </div>
-                      <ChevronRight
-                        className="w-4 h-4 text-[#8B95A1] shrink-0"
-                        aria-hidden="true"
-                      />
-                    </Link>
-                  </li>
-                ))}
+                        <ChevronRight
+                          className="w-4 h-4 text-[#8B95A1] shrink-0"
+                          aria-hidden="true"
+                        />
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>

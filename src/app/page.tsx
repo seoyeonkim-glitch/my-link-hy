@@ -14,6 +14,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   limit,
   orderBy,
   query,
@@ -183,6 +184,7 @@ export default function HomePage() {
           badge: data.badge,
           actionLabel: data.actionLabel ?? "방문",
           isActive: data.isActive ?? true,
+          clickCount: typeof data.clickCount === "number" ? data.clickCount : 0,
           createdAt: data.createdAt ?? "",
           updatedAt: data.updatedAt ?? undefined,
         };
@@ -203,6 +205,7 @@ export default function HomePage() {
         addDoc(linksRef, {
           title: newLinkInput.title,
           url: newLinkInput.url,
+          clickCount: newLinkInput.clickCount ?? 0,
           createdAt: now,
         }),
         new Promise((resolve) => setTimeout(resolve, 600)),
@@ -273,6 +276,52 @@ export default function HomePage() {
     onError: (error) => {
       console.error("Firestore 링크 삭제 실패:", error);
       toast.error("링크 삭제에 실패했어요. 다시 시도해 주세요.");
+    },
+  });
+
+  // [TanStack Query - useMutation] 링크 클릭 카운트 증가 (users/{ownerUid}/links/{linkId}) — 낙관적 업데이트 적용
+  const trackLinkClickMutation = useMutation({
+    mutationFn: async ({
+      ownerUid,
+      linkId,
+    }: {
+      ownerUid: string;
+      linkId: string;
+    }) => {
+      const linkDocRef = doc(db, "users", ownerUid, "links", linkId);
+      await updateDoc(linkDocRef, {
+        clickCount: increment(1),
+      });
+    },
+    onMutate: async ({ ownerUid, linkId }) => {
+      const linksQueryKey = ["users", ownerUid, "links"] as const;
+      await queryClient.cancelQueries({ queryKey: linksQueryKey });
+
+      const previousLinks = queryClient.getQueryData<LinkItem[]>(linksQueryKey);
+
+      queryClient.setQueryData<LinkItem[]>(linksQueryKey, (old) =>
+        old?.map((item) =>
+          item.id === linkId
+            ? { ...item, clickCount: (item.clickCount ?? 0) + 1 }
+            : item
+        )
+      );
+
+      return { previousLinks, ownerUid };
+    },
+    onError: (error, _variables, context) => {
+      console.error("Firestore 링크 클릭 카운트 저장 실패:", error);
+      if (context?.ownerUid && context?.previousLinks) {
+        queryClient.setQueryData(
+          ["users", context.ownerUid, "links"],
+          context.previousLinks
+        );
+      }
+    },
+    onSettled: async (_data, _error, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: ["users", variables.ownerUid, "links"],
+      });
     },
   });
 
@@ -441,6 +490,11 @@ export default function HomePage() {
     await deleteLinkMutation.mutateAsync(id);
   };
 
+  const handleTrackLinkClick = (linkId: string) => {
+    if (!targetUid || targetUid === "anonymous") return;
+    trackLinkClickMutation.mutate({ ownerUid: targetUid, linkId });
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
       {/* ── 상단 마이페이지 헤더 바 (가로형) ── */}
@@ -547,6 +601,7 @@ export default function HomePage() {
                 links={links}
                 isLoading={isLinksLoading}
                 isEditable={Boolean(user)}
+                onLinkClick={handleTrackLinkClick}
                 onUpdateLink={handleUpdateLink}
                 onDeleteLink={handleDeleteLink}
               />

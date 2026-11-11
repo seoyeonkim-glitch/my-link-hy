@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
   collection,
+  doc,
   getDocs,
+  increment,
   orderBy,
   query,
+  updateDoc,
   where,
 } from "firebase/firestore";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -19,6 +22,7 @@ import {
   Globe,
   Loader2,
   Mail,
+  MousePointerClick,
 } from "lucide-react";
 import { toast } from "sonner";
 import NotFound from "@/app/not-found";
@@ -76,6 +80,7 @@ function getIconConfig(icon?: LinkIconType, url?: string) {
 }
 
 export default function UserPublicProfilePage() {
+  const queryClient = useQueryClient();
   const params = useParams<{ displayName: string }>();
   const rawDisplayName = params?.displayName ?? "";
   const decodedDisplayName = decodeURIComponent(rawDisplayName).trim();
@@ -133,9 +138,56 @@ export default function UserPublicProfilePage() {
           badge: data.badge,
           actionLabel: data.actionLabel ?? "방문",
           isActive: data.isActive ?? true,
+          clickCount: typeof data.clickCount === "number" ? data.clickCount : 0,
           createdAt: data.createdAt ?? "",
           updatedAt: data.updatedAt ?? undefined,
         };
+      });
+    },
+  });
+
+  // 3. 방문자 링크 클릭 시 클릭 카운트 1 증가 (users/{userId}/links/{linkId}) — 낙관적 업데이트 적용
+  const trackLinkClickMutation = useMutation({
+    mutationFn: async ({
+      ownerUid,
+      linkId,
+    }: {
+      ownerUid: string;
+      linkId: string;
+    }) => {
+      const linkDocRef = doc(db, "users", ownerUid, "links", linkId);
+      await updateDoc(linkDocRef, {
+        clickCount: increment(1),
+      });
+    },
+    onMutate: async ({ ownerUid, linkId }) => {
+      const linksQueryKey = ["users", ownerUid, "links"] as const;
+      await queryClient.cancelQueries({ queryKey: linksQueryKey });
+
+      const previousLinks = queryClient.getQueryData<LinkItem[]>(linksQueryKey);
+
+      queryClient.setQueryData<LinkItem[]>(linksQueryKey, (old) =>
+        old?.map((item) =>
+          item.id === linkId
+            ? { ...item, clickCount: (item.clickCount ?? 0) + 1 }
+            : item
+        )
+      );
+
+      return { previousLinks, ownerUid };
+    },
+    onError: (error, _variables, context) => {
+      console.error("링크 클릭 카운트 저장 실패:", error);
+      if (context?.ownerUid && context?.previousLinks) {
+        queryClient.setQueryData(
+          ["users", context.ownerUid, "links"],
+          context.previousLinks
+        );
+      }
+    },
+    onSettled: async (_data, _error, variables) => {
+      await queryClient.invalidateQueries({
+        queryKey: ["users", variables.ownerUid, "links"],
       });
     },
   });
@@ -183,6 +235,18 @@ export default function UserPublicProfilePage() {
       toast.success("페이지 링크가 복사됐어요 ✓");
     }
   };
+
+  const handleTrackLinkClick = (linkId: string) => {
+    trackLinkClickMutation.mutate({
+      ownerUid: targetUser.uid,
+      linkId,
+    });
+  };
+
+  const totalClicks = links.reduce(
+    (sum, item) => sum + (typeof item.clickCount === "number" ? item.clickCount : 0),
+    0
+  );
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
@@ -273,7 +337,7 @@ export default function UserPublicProfilePage() {
             aria-label="링크 목록"
             className="px-4 sm:px-6 pb-6 sm:pb-7 flex flex-col gap-3"
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <h2 className="text-[13px] sm:text-[13.5px] font-bold tracking-[-0.01em] text-[#191F28]">
                   🔗 등록된 링크
@@ -288,7 +352,22 @@ export default function UserPublicProfilePage() {
                   </span>
                 )}
               </div>
-              <Badge variant="count">{links.length}</Badge>
+              <div className="flex items-center gap-1.5">
+                {links.length > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="h-[20px] px-2 text-[11px] font-semibold gap-1 text-[#4E5968] tabular-nums"
+                    aria-label={`전체 클릭 ${totalClicks.toLocaleString()}회`}
+                  >
+                    <MousePointerClick
+                      className="w-3 h-3 text-[#3182F6]"
+                      aria-hidden="true"
+                    />
+                    총 {totalClicks.toLocaleString()}회
+                  </Badge>
+                )}
+                <Badge variant="count">{links.length}</Badge>
+              </div>
             </div>
 
             <Separator />
@@ -319,12 +398,15 @@ export default function UserPublicProfilePage() {
                     link.icon,
                     link.url
                   );
+                  const clickCount =
+                    typeof link.clickCount === "number" ? link.clickCount : 0;
                   return (
                     <li key={link.id} role="listitem">
                       <Link
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => handleTrackLinkClick(link.id)}
                         className="block rounded-[16px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3182F6]/40"
                       >
                         <CardListRow className="justify-between">
@@ -338,9 +420,25 @@ export default function UserPublicProfilePage() {
                               <Icon className="w-5 h-5" aria-hidden="true" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <CardTitle className="truncate">
-                                {link.title}
-                              </CardTitle>
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <CardTitle className="truncate">
+                                  {link.title}
+                                </CardTitle>
+                                <span
+                                  className="inline-flex items-center gap-1 rounded-full bg-[#F2F4F6] px-2 py-0.5 text-[11px] font-semibold text-[#4E5968] tabular-nums shrink-0"
+                                  aria-label={`클릭 ${clickCount.toLocaleString()}회`}
+                                  title={`클릭 ${clickCount.toLocaleString()}회`}
+                                >
+                                  <MousePointerClick
+                                    className="w-3 h-3 text-[#3182F6]"
+                                    aria-hidden="true"
+                                  />
+                                  <span>
+                                    <span className="hidden sm:inline">클릭 </span>
+                                    {clickCount.toLocaleString()}회
+                                  </span>
+                                </span>
+                              </div>
                               <CardDescription className="mt-0.5">
                                 {link.description || link.url}
                               </CardDescription>

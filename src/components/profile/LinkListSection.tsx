@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, MousePointerClick } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { LinkCardItem } from "@/components/profile/LinkCardItem";
@@ -10,6 +10,7 @@ export interface LinkListSectionProps {
   links: LinkItem[];
   isLoading?: boolean;
   isEditable?: boolean;
+  onLinkClick?: (id: string) => void;
   onUpdateLink: (
     id: string,
     updatedValues: { title: string; url: string }
@@ -21,16 +22,22 @@ export function LinkListSection({
   links,
   isLoading = false,
   isEditable = true,
+  onLinkClick,
   onUpdateLink,
   onDeleteLink,
 }: LinkListSectionProps) {
+  const totalClicks = links.reduce(
+    (sum, item) => sum + (typeof item.clickCount === "number" ? item.clickCount : 0),
+    0
+  );
+
   return (
     <section
       aria-label="링크 목록"
       className="px-4 sm:px-6 pb-6 sm:pb-7 flex flex-col gap-3"
     >
-      {/* 헤더 + 우측 로딩 표시 및 카운트 Badge */}
-      <div className="flex items-center justify-between">
+      {/* 헤더 + 우측 로딩 표시, 총 클릭수 및 카운트 Badge */}
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <h2 className="text-[13px] sm:text-[13.5px] font-bold tracking-[-0.01em] text-[#191F28]">
             🔗 등록된 링크
@@ -42,7 +49,22 @@ export function LinkListSection({
             </span>
           )}
         </div>
-        <Badge variant="count">{links.length}</Badge>
+        <div className="flex items-center gap-1.5">
+          {links.length > 0 && (
+            <Badge
+              variant="secondary"
+              className="h-[20px] px-2 text-[11px] font-semibold gap-1 text-[#4E5968] tabular-nums"
+              aria-label={`전체 클릭 ${totalClicks.toLocaleString()}회`}
+            >
+              <MousePointerClick
+                className="w-3 h-3 text-[#3182F6]"
+                aria-hidden="true"
+              />
+              총 {totalClicks.toLocaleString()}회
+            </Badge>
+          )}
+          <Badge variant="count">{links.length}</Badge>
+        </div>
       </div>
 
       <Separator />
@@ -81,6 +103,7 @@ export function LinkListSection({
               <LinkCardItem
                 link={link}
                 isEditable={isEditable}
+                onLinkClick={onLinkClick}
                 onUpdateLink={onUpdateLink}
                 onDeleteLink={onDeleteLink}
               />
