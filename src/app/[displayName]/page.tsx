@@ -22,7 +22,6 @@ import {
   Globe,
   Loader2,
   Mail,
-  MousePointerClick,
 } from "lucide-react";
 import { toast } from "sonner";
 import NotFound from "@/app/not-found";
@@ -243,11 +242,6 @@ export default function UserPublicProfilePage() {
     });
   };
 
-  const totalClicks = links.reduce(
-    (sum, item) => sum + (typeof item.clickCount === "number" ? item.clickCount : 0),
-    0
-  );
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
       <Card className="w-full max-w-[420px]">
@@ -352,21 +346,7 @@ export default function UserPublicProfilePage() {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-1.5">
-                <Badge
-                  variant="secondary"
-                  className="h-[20px] px-2 text-[11px] font-semibold gap-1 text-[#4E5968] tabular-nums"
-                  aria-label={`전체 클릭 ${totalClicks.toLocaleString()}회`}
-                  title={`전체 클릭 ${totalClicks.toLocaleString()}회`}
-                >
-                  <MousePointerClick
-                    className="w-3 h-3 text-[#3182F6]"
-                    aria-hidden="true"
-                  />
-                  {totalClicks.toLocaleString()}
-                </Badge>
-                <Badge variant="count">{links.length}</Badge>
-              </div>
+              <Badge variant="count">{links.length}</Badge>
             </div>
 
             <Separator />
@@ -397,8 +377,6 @@ export default function UserPublicProfilePage() {
                     link.icon,
                     link.url
                   );
-                  const clickCount =
-                    typeof link.clickCount === "number" ? link.clickCount : 0;
                   return (
                     <li key={link.id} role="listitem">
                       <Link
@@ -419,22 +397,9 @@ export default function UserPublicProfilePage() {
                               <Icon className="w-5 h-5" aria-hidden="true" />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <CardTitle className="truncate">
-                                  {link.title}
-                                </CardTitle>
-                                <span
-                                  className="inline-flex items-center gap-1 rounded-full bg-[#F2F4F6] px-2 py-0.5 text-[11px] font-semibold text-[#4E5968] tabular-nums shrink-0"
-                                  aria-label={`클릭 ${clickCount.toLocaleString()}회`}
-                                  title={`클릭 ${clickCount.toLocaleString()}회`}
-                                >
-                                  <MousePointerClick
-                                    className="w-3 h-3 text-[#3182F6]"
-                                    aria-hidden="true"
-                                  />
-                                  {clickCount.toLocaleString()}
-                                </span>
-                              </div>
+                              <CardTitle className="truncate">
+                                {link.title}
+                              </CardTitle>
                               <CardDescription className="mt-0.5">
                                 {link.description || link.url}
                               </CardDescription>
