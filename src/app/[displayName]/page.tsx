@@ -24,17 +24,24 @@ export async function generateMetadata({
   const resolvedBio =
     profile?.bio ||
     `${resolvedName}님의 모든 링크를 MyLink에서 한눈에 확인해 보세요.`;
+  const canonicalPath = decodedHandle
+    ? `/${encodeURIComponent(decodedHandle)}`
+    : "/";
 
   return {
     title: resolvedName,
     description: resolvedBio,
+    keywords: [resolvedName, "MyLink", "마이링크", "프로필 링크", "링크 모음"],
+    alternates: {
+      canonical: canonicalPath,
+    },
     openGraph: {
       type: "profile",
       locale: "ko_KR",
       siteName: "MyLink",
       title: `${resolvedName} | MyLink`,
       description: resolvedBio,
-      url: `/${encodeURIComponent(decodedHandle)}`,
+      url: canonicalPath,
     },
     twitter: {
       card: "summary_large_image",
