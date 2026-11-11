@@ -188,7 +188,7 @@ export function MyPageTopBar({
                       className="w-4 h-4 text-[#3182F6] shrink-0"
                       aria-hidden="true"
                     />
-                    <span>마이페이지 홈 (/)</span>
+                    <span>마이페이지 홈</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
@@ -198,7 +198,7 @@ export function MyPageTopBar({
                       className="w-4 h-4 text-[#3182F6] shrink-0"
                       aria-hidden="true"
                     />
-                    <span>개인별 페이지 (/{displayName})</span>
+                    <span>개인별 페이지</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
@@ -211,7 +211,7 @@ export function MyPageTopBar({
                       className="w-4 h-4 text-[#3182F6] shrink-0"
                       aria-hidden="true"
                     />
-                    <span>링크 통계 (/stats)</span>
+                    <span>링크 통계</span>
                   </DropdownMenuItem>
 
                   {onEditProfile && (
