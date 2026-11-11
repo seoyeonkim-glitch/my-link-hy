@@ -26,11 +26,13 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { LandingContent } from "@/components/landing/LandingContent";
+import { LandingSections } from "@/components/landing/LandingSections";
 import {
+  GoogleIcon,
   MyPageTopBar,
   ProfileHeader,
 } from "@/components/profile/ProfileHeader";
@@ -41,7 +43,6 @@ import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
 import { PreviewProfileDialog } from "@/components/profile/PreviewProfileDialog";
 import { DEFAULT_PROFILE_DATA } from "@/constants";
 import { auth, db, googleProvider } from "@/lib/firebase";
-import { cn } from "@/lib/utils";
 import type { LinkItem } from "@/types";
 
 interface FirestoreUserInfo {
@@ -65,7 +66,6 @@ export default function HomePage() {
 
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [isLandingPreview, setIsLandingPreview] = useState(false);
 
   // Firebase 인증 상태 감지
   useEffect(() => {
@@ -78,8 +78,7 @@ export default function HomePage() {
   }, []);
 
   // [TanStack Query - useQuery] 유저 프로필 정보 조회 (로그인 시 본인 프로필 동기화 / 비로그인 시 공개 프로필 읽기)
-  const { data: userInfo, isLoading: isUserInfoLoading } =
-    useQuery<FirestoreUserInfo>({
+  const { data: userInfo } = useQuery<FirestoreUserInfo>({
     queryKey: ["users", user?.uid ?? "public", "profile"],
     enabled: !isAuthLoading,
     queryFn: async () => {
@@ -411,7 +410,6 @@ export default function HomePage() {
     setIsAuthActionLoading(true);
     try {
       await signOut(auth);
-      setIsLandingPreview(false);
       queryClient.clear();
       toast.success("로그아웃됐어요 ✓");
     } catch (error) {
@@ -452,15 +450,10 @@ export default function HomePage() {
   };
 
   const handleShare = () => {
-    const isLandingShare = !user || isLandingPreview;
-    const shareTitle = isLandingShare
-      ? "MyLink | 흩어진 링크를 하나의 페이지로"
-      : `${displayUserName} | MyLink`;
+    const shareTitle = `${displayUserName} | MyLink`;
     const targetUrl =
       typeof window !== "undefined"
-        ? isLandingShare
-          ? window.location.origin
-          : `${window.location.origin}/${encodeURIComponent(displayUserName)}`
+        ? `${window.location.origin}/${encodeURIComponent(displayUserName)}`
         : "";
 
     if (typeof window !== "undefined" && navigator.share) {
@@ -470,11 +463,7 @@ export default function HomePage() {
       });
     } else if (typeof window !== "undefined") {
       navigator.clipboard.writeText(targetUrl);
-      toast.success(
-        isLandingShare
-          ? "마이링크 서비스 주소가 복사됐어요 ✓"
-          : "내 페이지 링크가 복사됐어요 ✓"
-      );
+      toast.success("내 페이지 링크가 복사됐어요 ✓");
     }
   };
 
@@ -507,15 +496,8 @@ export default function HomePage() {
     trackLinkClickMutation.mutate({ ownerUid: targetUid, linkId });
   };
 
-  const isShowingLanding = !isAuthLoading && (!user || isLandingPreview);
-
   return (
-    <div
-      className={cn(
-        "min-h-screen flex flex-col items-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10",
-        !isShowingLanding && "justify-center"
-      )}
-    >
+    <div className="min-h-screen flex flex-col items-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
       {/* ── 상단 마이페이지 헤더 바 (가로형) ── */}
       <MyPageTopBar
         displayName={displayUserName}
@@ -523,11 +505,6 @@ export default function HomePage() {
         avatarUrl={displayUserAvatar}
         isLoggedIn={Boolean(user)}
         isAuthActionLoading={isAuthActionLoading}
-        showLandingNav={isShowingLanding}
-        isLandingPreview={Boolean(user && isLandingPreview)}
-        onToggleLandingPreview={
-          user ? () => setIsLandingPreview((prev) => !prev) : undefined
-        }
         onGoogleLogin={handleGoogleLogin}
         onLogout={handleLogout}
         onEditProfile={() => setIsEditProfileOpen(true)}
@@ -536,9 +513,9 @@ export default function HomePage() {
         onShare={handleShare}
       />
 
-      {/* ── 메인 영역: 인증 대기 → 비로그인(또는 미리보기) 랜딩 페이지 → 로그인 시 링크 관리 워크스페이스 ── */}
-      {isAuthLoading ? (
-        <main role="main" className="w-full max-w-[860px]">
+      {/* ── 메인 영역: 기존 히어로 섹션 유지 + 하단 통일감 있는 랜딩 섹션 확장 ── */}
+      <main role="main" className="w-full max-w-[860px]">
+        {isAuthLoading ? (
           <Card className="w-full px-6 py-14 flex flex-col items-center justify-center gap-3 text-center">
             <Loader2
               className="w-7 h-7 text-[#3182F6] animate-spin"
@@ -548,77 +525,113 @@ export default function HomePage() {
               페이지를 불러오고 있어요...
             </p>
           </Card>
-        </main>
-      ) : isShowingLanding ? (
-        <LandingContent
-          publicProfile={userInfo}
-          publicLinks={links}
-          isPublicLoading={isUserInfoLoading || isLinksLoading}
-          isAuthActionLoading={isAuthActionLoading}
-          isLoggedInPreview={Boolean(user && isLandingPreview)}
-          onGoogleLogin={handleGoogleLogin}
-          onExitPreview={() => setIsLandingPreview(false)}
-          onTrackPublicLinkClick={handleTrackLinkClick}
-        />
-      ) : (
-        <main role="main" className="w-full max-w-[860px]">
-          <div className="grid grid-cols-1 md:grid-cols-[310px_1fr] gap-5 items-start">
-            {/* 좌측: 로그인 사용자 프로필 카드 */}
-            <Card className="w-full">
-              <ProfileHeader
-                displayName={displayUserName}
-                email={displayUserEmail}
-                bio={displayUserBio}
-                avatarUrl={displayUserAvatar}
-                isLoggedIn={Boolean(user)}
-                onEditProfile={() => setIsEditProfileOpen(true)}
-              />
+        ) : (
+          <>
+            {/* ── 기존 히어로 섹션 (로그인/비로그인 모두 읽기 가능, 쓰기는 로그인 시 활성화) ── */}
+            <div className="grid grid-cols-1 md:grid-cols-[310px_1fr] gap-5 items-start">
+              {/* 좌측: 프로필 카드 (읽기는 누구나 가능, 프로필 수정 버튼은 로그인 시 노출) */}
+              <Card className="w-full">
+                <ProfileHeader
+                  displayName={displayUserName}
+                  email={displayUserEmail}
+                  bio={displayUserBio}
+                  avatarUrl={displayUserAvatar}
+                  isLoggedIn={Boolean(user)}
+                  onEditProfile={() => setIsEditProfileOpen(true)}
+                />
 
-              <ProfileActions
-                onCopyEmail={handleCopyEmail}
-                githubUrl={DEFAULT_PROFILE_DATA.socialLinks.github}
-                blogUrl={DEFAULT_PROFILE_DATA.socialLinks.blog}
-                portfolioUrl={DEFAULT_PROFILE_DATA.socialLinks.portfolio}
-              />
-            </Card>
+                <ProfileActions
+                  onCopyEmail={handleCopyEmail}
+                  githubUrl={DEFAULT_PROFILE_DATA.socialLinks.github}
+                  blogUrl={DEFAULT_PROFILE_DATA.socialLinks.blog}
+                  portfolioUrl={DEFAULT_PROFILE_DATA.socialLinks.portfolio}
+                />
+              </Card>
 
-            {/* 우측: 링크 추가·수정·삭제 & 링크 목록 카드 */}
-            <Card className="w-full pt-5 sm:pt-6">
-              <AddLinkDialog
-                onAddLink={handleAddLink}
-                isAdding={addLinkMutation.isPending}
-              />
+              {/* 우측: 링크 목록 읽기 & (로그인 시) 링크 추가/수정/삭제 카드 */}
+              <Card className="w-full pt-5 sm:pt-6">
+                {user ? (
+                  <AddLinkDialog
+                    onAddLink={handleAddLink}
+                    isAdding={addLinkMutation.isPending}
+                  />
+                ) : (
+                  /* 비로그인 상태 안내 배너: 읽기는 가능하며 추가·수정·삭제는 로그인 후 사용 가능 */
+                  <div className="mx-4 sm:mx-6 mb-4 rounded-[16px] bg-[#F9FAFB] border border-[#E5E8EB] p-3.5 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 text-center sm:text-left">
+                      <div className="w-8 h-8 rounded-full bg-[#E8F3FF] flex items-center justify-center shrink-0">
+                        <Lock
+                          className="w-4 h-4 text-[#3182F6]"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-bold text-[#191F28]">
+                          링크 추가·수정·삭제는 로그인 이후에 사용할 수 있어요
+                        </p>
+                        <p className="text-[11.5px] text-[#6B7684]">
+                          등록된 프로필과 링크 목록은 로그인 없이도 자유롭게 열람할 수 있어요.
+                        </p>
+                      </div>
+                    </div>
 
-              <LinkListSection
-                links={links}
-                isLoading={isLinksLoading}
-                isEditable={Boolean(user)}
-                onLinkClick={handleTrackLinkClick}
-                onUpdateLink={handleUpdateLink}
-                onDeleteLink={handleDeleteLink}
-              />
-            </Card>
-          </div>
-        </main>
-      )}
+                    <Button
+                      type="button"
+                      variant="default"
+                      size="sm"
+                      disabled={isAuthActionLoading}
+                      onClick={handleGoogleLogin}
+                      className="h-9 rounded-full px-3.5 text-[12.5px] font-bold shrink-0 whitespace-nowrap"
+                    >
+                      {isAuthActionLoading ? (
+                        <Loader2
+                          className="w-3.5 h-3.5 animate-spin"
+                          aria-hidden="true"
+                        />
+                      ) : (
+                        <>
+                          <span className="w-4 h-4 rounded-full bg-white flex items-center justify-center shrink-0">
+                            <GoogleIcon className="w-3 h-3" />
+                          </span>
+                          Google 로그인
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+
+                <LinkListSection
+                  links={links}
+                  isLoading={isLinksLoading}
+                  isEditable={Boolean(user)}
+                  onLinkClick={handleTrackLinkClick}
+                  onUpdateLink={handleUpdateLink}
+                  onDeleteLink={handleDeleteLink}
+                />
+              </Card>
+            </div>
+
+            {/* ── 하단 랜딩 확장 섹션 (기존 히어로와 동일한 TDS 카드·그리드 레벨) ── */}
+            <LandingSections
+              isLoggedIn={Boolean(user)}
+              displayName={displayUserName}
+              linkCount={links.length}
+              isAuthActionLoading={isAuthActionLoading}
+              onGoogleLogin={handleGoogleLogin}
+              onCopyPageLink={handleCopyPageLink}
+            />
+          </>
+        )}
+      </main>
 
       {/* ── 푸터 영역 ── */}
-      <footer className="mt-6 sm:mt-8 flex flex-col items-center gap-1">
+      <footer className="mt-6 sm:mt-8 flex flex-col items-center gap-0.5">
         <p className="text-[12px] sm:text-[12.5px] font-medium text-[#8B95A1]">
-          © 2026 {isShowingLanding ? "MyLink" : displayUserName}
+          © 2026 {displayUserName}
         </p>
         <p className="text-[11px] sm:text-[11.5px] font-normal text-[#B0B8C1]">
           Synced with Cloud Firestore
         </p>
-        {user && !isLandingPreview && (
-          <button
-            type="button"
-            onClick={() => setIsLandingPreview(true)}
-            className="mt-1 text-[11.5px] font-semibold text-[#6B7684] hover:text-[#3182F6] underline-offset-4 hover:underline transition-colors cursor-pointer"
-          >
-            서비스 랜딩 페이지 보기
-          </button>
-        )}
       </footer>
 
       {/* ── 프로필 수정 다이얼로그 (한 줄 소개, 프로필 사진) ── */}

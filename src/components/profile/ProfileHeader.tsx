@@ -13,7 +13,6 @@ import {
   Loader2,
   LogOut,
   Pencil,
-  Sparkles,
 } from "lucide-react";
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -70,12 +69,6 @@ export function GoogleIcon({ className = "w-4 h-4" }: { className?: string }) {
   );
 }
 
-export interface MyPageTopBarProps extends Omit<ProfileHeaderProps, "bio"> {
-  showLandingNav?: boolean;
-  isLandingPreview?: boolean;
-  onToggleLandingPreview?: () => void;
-}
-
 /**
  * 마이페이지 상단 네비게이션 바 (가로형)
  */
@@ -85,16 +78,13 @@ export function MyPageTopBar({
   avatarUrl,
   isLoggedIn = false,
   isAuthActionLoading = false,
-  showLandingNav = false,
-  isLandingPreview = false,
-  onToggleLandingPreview,
   onGoogleLogin,
   onLogout,
   onEditProfile,
   onPreviewPage,
   onCopyPageLink,
   onShare,
-}: MyPageTopBarProps) {
+}: Omit<ProfileHeaderProps, "bio">) {
   const router = useRouter();
   const pathname = usePathname();
   const personalPageHref = `/${encodeURIComponent(displayName)}`;
@@ -104,42 +94,15 @@ export function MyPageTopBar({
       aria-label="마이페이지 상단 바"
       className="w-full max-w-[860px] mb-5 rounded-[20px] bg-white px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 border border-[#E5E8EB]/80"
     >
-      {/* 좌측: MyLink 헤더 타이틀 + (랜딩 뷰 데스크톱) 섹션 바로가기 */}
-      <div className="flex items-center gap-4 shrink-0">
+      {/* 좌측: MyLink 헤더 타이틀 (클릭 시 루트 페이지 '/'로 이동) */}
+      <div className="flex items-center shrink-0">
         <Link
           href="/"
           aria-label="MyLink 루트 페이지로 이동"
-          onClick={isLandingPreview ? onToggleLandingPreview : undefined}
           className="inline-flex items-center rounded-md text-[16px] sm:text-[17px] font-extrabold tracking-[-0.02em] text-[#191F28] whitespace-nowrap hover:opacity-75 transition-opacity cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3182F6]/40"
         >
           MyLink
         </Link>
-
-        {showLandingNav && (
-          <nav
-            aria-label="랜딩 섹션 이동"
-            className="hidden md:flex items-center gap-1"
-          >
-            <a
-              href="#playground"
-              className="rounded-full px-2.5 py-1 text-[12.5px] font-semibold text-[#6B7684] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors whitespace-nowrap"
-            >
-              체험하기
-            </a>
-            <a
-              href="#features"
-              className="rounded-full px-2.5 py-1 text-[12.5px] font-semibold text-[#6B7684] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors whitespace-nowrap"
-            >
-              주요 기능
-            </a>
-            <a
-              href="#faq"
-              className="rounded-full px-2.5 py-1 text-[12.5px] font-semibold text-[#6B7684] hover:text-[#191F28] hover:bg-[#F2F4F6] transition-colors whitespace-nowrap"
-            >
-              자주 묻는 질문
-            </a>
-          </nav>
-        )}
       </div>
 
       {/* 우측: 마이페이지 이동 버튼 + 프로필 드롭다운(또는 Google 로그인) + 공유 버튼 */}
@@ -250,20 +213,6 @@ export function MyPageTopBar({
                     />
                     <span>링크 통계</span>
                   </DropdownMenuItem>
-
-                  {onToggleLandingPreview && (
-                    <DropdownMenuItem onClick={onToggleLandingPreview}>
-                      <Sparkles
-                        className="w-4 h-4 text-[#3182F6] shrink-0"
-                        aria-hidden="true"
-                      />
-                      <span>
-                        {isLandingPreview
-                          ? "내 링크 관리 보기"
-                          : "랜딩 페이지 보기"}
-                      </span>
-                    </DropdownMenuItem>
-                  )}
 
                   {onEditProfile && (
                     <DropdownMenuItem onClick={onEditProfile}>
