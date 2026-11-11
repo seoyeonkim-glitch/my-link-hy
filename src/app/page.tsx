@@ -19,7 +19,6 @@ import {
   query,
   setDoc,
   updateDoc,
-  where,
 } from "firebase/firestore";
 import {
   useMutation,
@@ -279,11 +278,7 @@ export default function HomePage() {
 
   // [TanStack Query - useMutation] 프로필 수정 (users/{user.uid}) — 낙관적 업데이트(Optimistic Update) 적용
   const updateProfileMutation = useMutation({
-    mutationFn: async (values: {
-      displayName: string;
-      bio: string;
-      photoURL: string;
-    }) => {
+    mutationFn: async (values: { bio: string; photoURL: string }) => {
       if (!user) throw new Error("로그인이 필요해요.");
       const now = new Date().toISOString();
       const nextPhotoURL =
@@ -294,8 +289,6 @@ export default function HomePage() {
         userDocRef,
         {
           uid: user.uid,
-          displayName: values.displayName,
-          email: userInfo?.email || user.email || "",
           bio: values.bio,
           photoURL: nextPhotoURL,
           updatedAt: now,
@@ -318,7 +311,7 @@ export default function HomePage() {
 
       queryClient.setQueryData<FirestoreUserInfo>(profileQueryKey, (old) => ({
         uid: user.uid,
-        displayName: newValues.displayName,
+        displayName: old?.displayName || displayUserName,
         email: old?.email || user.email || "",
         bio: newValues.bio,
         photoURL: nextPhotoURL,
@@ -424,22 +417,7 @@ export default function HomePage() {
     }
   };
 
-  // Firestore(users 컬렉션)에서 displayName 중복 여부 확인 (본인 uid 제외)
-  const handleCheckDisplayNameDuplicate = async (
-    targetDisplayName: string
-  ): Promise<boolean> => {
-    const trimmed = targetDisplayName.trim();
-    if (!trimmed) return false;
-
-    const usersRef = collection(db, "users");
-    const q = query(usersRef, where("displayName", "==", trimmed));
-    const snapshot = await getDocs(q);
-
-    return snapshot.docs.some((docSnap) => docSnap.id !== user?.uid);
-  };
-
   const handleUpdateProfile = async (values: {
-    displayName: string;
     bio: string;
     photoURL: string;
   }) => {
@@ -587,14 +565,12 @@ export default function HomePage() {
         </p>
       </footer>
 
-      {/* ── 프로필 수정 다이얼로그 (displayName 중복 확인 포함) ── */}
+      {/* ── 프로필 수정 다이얼로그 (한 줄 소개, 프로필 사진) ── */}
       <EditProfileDialog
         open={isEditProfileOpen}
         onOpenChange={setIsEditProfileOpen}
-        currentDisplayName={displayUserName}
         currentBio={displayUserBio}
         currentPhotoURL={displayUserAvatar}
-        onCheckDisplayNameDuplicate={handleCheckDisplayNameDuplicate}
         onUpdateProfile={handleUpdateProfile}
       />
 
