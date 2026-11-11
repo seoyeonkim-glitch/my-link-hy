@@ -15,16 +15,18 @@ import {
   getDocs,
   orderBy,
   query,
+  setDoc,
 } from "firebase/firestore";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import {
   ArrowLeft,
   BarChart3,
-  ChevronDown,
-  ExternalLink,
   Link2,
   Loader2,
-  LogOut,
   MousePointerClick,
   RefreshCw,
   Trophy,
@@ -39,7 +41,9 @@ import {
   YAxis,
 } from "recharts";
 import { toast } from "sonner";
-import { Avatar, AvatarImage } from "@/components/ui/avatar";
+import { EditProfileDialog } from "@/components/profile/EditProfileDialog";
+import { PreviewProfileDialog } from "@/components/profile/PreviewProfileDialog";
+import { MyPageTopBar } from "@/components/profile/ProfileHeader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -49,19 +53,19 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { DEFAULT_PROFILE_DATA } from "@/constants";
 import { auth, db } from "@/lib/firebase";
 import { cn } from "@/lib/utils";
 import type { LinkItem } from "@/types";
+
+interface StatsUserProfile {
+  uid: string;
+  displayName: string;
+  email: string;
+  photoURL: string;
+  bio: string;
+}
 
 const chartConfig = {
   clickCount: {
@@ -119,7 +123,10 @@ export default function StatsPage() {
 
   const [user, setUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [isAuthActionLoading, setIsAuthActionLoading] = useState(false);
+
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Firebase 로그인 상태 감지
   useEffect(() => {
@@ -138,20 +145,18 @@ export default function StatsPage() {
     }
   }, [isAuthLoading, user, router]);
 
-  // 유저 프로필 정보 조회 (헤더 표시 및 공개 페이지 링크용)
-  const { data: userProfile } = useQuery<{
-    displayName: string;
-    email: string;
-    photoURL: string;
-  }>({
-    queryKey: ["users", user?.uid, "statsProfile"],
+  // 유저 프로필 정보 조회 (기존 사이트 헤더, 프로필 수정, 미리보기용)
+  const { data: userProfile } = useQuery<StatsUserProfile>({
+    queryKey: ["users", user?.uid, "profile"],
     enabled: Boolean(user?.uid),
     queryFn: async () => {
       if (!user) {
         return {
+          uid: "",
           displayName: DEFAULT_PROFILE_DATA.displayName,
           email: "",
           photoURL: DEFAULT_PROFILE_DATA.avatarUrl,
+          bio: DEFAULT_PROFILE_DATA.bio,
         };
       }
 
@@ -161,6 +166,7 @@ export default function StatsPage() {
       const resolvedEmail = data?.email || user.email || "";
 
       return {
+        uid: user.uid,
         displayName:
           data?.displayName ||
           getEmailPrefix(resolvedEmail) ||
@@ -169,6 +175,7 @@ export default function StatsPage() {
         email: resolvedEmail,
         photoURL:
           data?.photoURL || user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl,
+        bio: data?.bio || DEFAULT_PROFILE_DATA.bio,
       };
     },
   });
@@ -209,8 +216,76 @@ export default function StatsPage() {
     },
   });
 
+  // 헤더의 프로필 수정 모달 연동 (낙관적 업데이트 적용)
+  const updateProfileMutation = useMutation({
+    mutationFn: async (values: { bio: string; photoURL: string }) => {
+      if (!user) throw new Error("로그인이 필요해요.");
+      const now = new Date().toISOString();
+      const nextPhotoURL =
+        values.photoURL || user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
+
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(
+        userDocRef,
+        {
+          uid: user.uid,
+          bio: values.bio,
+          photoURL: nextPhotoURL,
+          updatedAt: now,
+        },
+        { merge: true }
+      );
+    },
+    onMutate: async (newValues) => {
+      if (!user) return { previousProfile: undefined };
+
+      const profileQueryKey = ["users", user.uid, "profile"] as const;
+      await queryClient.cancelQueries({ queryKey: profileQueryKey });
+
+      const previousProfile =
+        queryClient.getQueryData<StatsUserProfile>(profileQueryKey);
+
+      const nextPhotoURL =
+        newValues.photoURL || user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
+
+      queryClient.setQueryData<StatsUserProfile>(profileQueryKey, (old) => ({
+        uid: user.uid,
+        displayName:
+          old?.displayName ||
+          getEmailPrefix(user.email) ||
+          user.displayName ||
+          DEFAULT_PROFILE_DATA.displayName,
+        email: old?.email || user.email || "",
+        bio: newValues.bio,
+        photoURL: nextPhotoURL,
+      }));
+
+      return { previousProfile };
+    },
+    onSuccess: () => {
+      toast.success("프로필이 수정됐어요 ✓");
+    },
+    onError: (error, _newValues, context) => {
+      console.error("Firestore 프로필 수정 실패:", error);
+      if (user && context?.previousProfile) {
+        queryClient.setQueryData(
+          ["users", user.uid, "profile"],
+          context.previousProfile
+        );
+      }
+      toast.error("프로필 수정에 실패했어요. 다시 시도해 주세요.");
+    },
+    onSettled: async () => {
+      if (user) {
+        await queryClient.invalidateQueries({
+          queryKey: ["users", user.uid, "profile"],
+        });
+      }
+    },
+  });
+
   const handleLogout = async () => {
-    setIsLoggingOut(true);
+    setIsAuthActionLoading(true);
     try {
       await signOut(auth);
       queryClient.clear();
@@ -220,7 +295,7 @@ export default function StatsPage() {
       console.error("로그아웃 실패:", error);
       toast.error("로그아웃에 실패했어요. 다시 시도해 주세요.");
     } finally {
-      setIsLoggingOut(false);
+      setIsAuthActionLoading(false);
     }
   };
 
@@ -251,7 +326,42 @@ export default function StatsPage() {
   const displayUserEmail = userProfile?.email || user.email || "";
   const displayUserAvatar =
     userProfile?.photoURL || user.photoURL || DEFAULT_PROFILE_DATA.avatarUrl;
-  const personalPageHref = `/${encodeURIComponent(displayUserName)}`;
+  const displayUserBio = userProfile?.bio || DEFAULT_PROFILE_DATA.bio;
+
+  const handleCopyPageLink = () => {
+    if (typeof window !== "undefined") {
+      const targetUrl = `${window.location.origin}/${encodeURIComponent(
+        displayUserName
+      )}`;
+      navigator.clipboard.writeText(targetUrl);
+      toast.success("내 페이지 링크가 복사됐어요 ✓");
+    }
+  };
+
+  const handleShare = () => {
+    const shareTitle = `${displayUserName} | MyLink`;
+    const targetUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/${encodeURIComponent(displayUserName)}`
+        : "";
+
+    if (typeof window !== "undefined" && navigator.share) {
+      navigator.share({
+        title: shareTitle,
+        url: targetUrl,
+      });
+    } else if (typeof window !== "undefined") {
+      navigator.clipboard.writeText(targetUrl);
+      toast.success("내 페이지 링크가 복사됐어요 ✓");
+    }
+  };
+
+  const handleUpdateProfile = async (values: {
+    bio: string;
+    photoURL: string;
+  }) => {
+    await updateProfileMutation.mutateAsync(values);
+  };
 
   // 총 클릭수 (모든 링크 합산) 및 주요 통계 지표
   const totalClicks = links.reduce(
@@ -277,113 +387,19 @@ export default function StatsPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-[#F4F5F7] px-3 py-6 sm:px-4 sm:py-10">
-      {/* ── 상단 네비게이션 바 (마이페이지와 동일한 860px 폭) ── */}
-      <header
-        aria-label="통계 페이지 상단 바"
-        className="w-full max-w-[860px] mb-5 rounded-[20px] bg-white px-4 sm:px-6 py-3.5 flex items-center justify-between gap-3 border border-[#E5E8EB]/80"
-      >
-        <div className="flex items-center gap-2.5 shrink-0">
-          <Link
-            href="/"
-            className="text-[16px] sm:text-[17px] font-extrabold tracking-[-0.02em] text-[#191F28] whitespace-nowrap"
-          >
-            MyLink
-          </Link>
-          <Badge variant="brand" className="h-[22px] px-2.5 text-[11px]">
-            통계
-          </Badge>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Link href="/">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              tabIndex={-1}
-              className="h-9 rounded-full px-3.5 text-[12.5px] font-bold gap-1.5 whitespace-nowrap"
-            >
-              <ArrowLeft className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-              <span>마이페이지</span>
-            </Button>
-          </Link>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              disabled={isLoggingOut}
-              aria-label="프로필 메뉴 열기"
-              className="inline-flex items-center gap-2 h-9 rounded-full bg-[#F2F4F6] hover:bg-[#E5E8EB] pl-1.5 pr-3 text-[12.5px] font-semibold text-[#191F28] border border-[#E5E8EB]/70 transition-colors whitespace-nowrap"
-            >
-              <Avatar className="w-6 h-6">
-                <AvatarImage
-                  src={displayUserAvatar}
-                  alt={`${displayUserName} 아바타`}
-                  fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
-                />
-              </Avatar>
-              <span className="max-w-[100px] truncate">{displayUserName}</span>
-              <ChevronDown
-                className="w-3.5 h-3.5 text-[#6B7684] shrink-0"
-                aria-hidden="true"
-              />
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent align="end" sideOffset={8}>
-              <div className="flex items-center gap-2.5 px-3 py-2.5">
-                <Avatar className="w-9 h-9 shrink-0">
-                  <AvatarImage
-                    src={displayUserAvatar}
-                    alt={`${displayUserName} 프로필 사진`}
-                    fallbackSrc="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces"
-                  />
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <p className="text-[13.5px] font-bold text-[#191F28] truncate">
-                    {displayUserName}
-                  </p>
-                  {displayUserEmail && (
-                    <p className="text-[11.5px] font-medium text-[#8B95A1] truncate">
-                      {displayUserEmail}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuGroup>
-                <DropdownMenuItem onClick={() => router.push("/")}>
-                  <ArrowLeft
-                    className="w-4 h-4 text-[#4E5968] shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span>마이페이지로 돌아가기</span>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem
-                  onClick={() => router.push(personalPageHref)}
-                >
-                  <ExternalLink
-                    className="w-4 h-4 text-[#3182F6] shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span>개인별 페이지 (/{displayUserName})</span>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem
-                onClick={handleLogout}
-                className="text-[#F04452] hover:bg-[#FFF0F1] data-[highlighted]:bg-[#FFF0F1]"
-              >
-                <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
-                <span>로그아웃</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
+      {/* ── 기존 사이트와 동일한 상단 마이페이지 헤더 바 (페이지 이동 지원) ── */}
+      <MyPageTopBar
+        displayName={displayUserName}
+        email={displayUserEmail}
+        avatarUrl={displayUserAvatar}
+        isLoggedIn={Boolean(user)}
+        isAuthActionLoading={isAuthActionLoading}
+        onLogout={handleLogout}
+        onEditProfile={() => setIsEditProfileOpen(true)}
+        onPreviewPage={() => setIsPreviewOpen(true)}
+        onCopyPageLink={handleCopyPageLink}
+        onShare={handleShare}
+      />
 
       {/* ── 메인 통계 대시보드 영역 ── */}
       <main role="main" className="w-full max-w-[860px] flex flex-col gap-5">
@@ -406,6 +422,18 @@ export default function StatsPage() {
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Link href="/">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  tabIndex={-1}
+                  className="h-9 rounded-full px-3.5 text-[12.5px] font-bold gap-1.5"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
+                  링크 관리
+                </Button>
+              </Link>
               <Button
                 type="button"
                 variant="secondary"
@@ -423,18 +451,6 @@ export default function StatsPage() {
                 />
                 새로고침
               </Button>
-              <Link href={personalPageHref}>
-                <Button
-                  type="button"
-                  variant="default"
-                  size="sm"
-                  tabIndex={-1}
-                  className="h-9 rounded-full px-3.5 text-[12.5px] font-bold gap-1.5"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                  공개 페이지
-                </Button>
-              </Link>
             </div>
           </div>
 
@@ -478,7 +494,9 @@ export default function StatsPage() {
                   평균{" "}
                   <span className="font-bold text-[#4E5968] tabular-nums">
                     {links.length > 0
-                      ? (Math.round((totalClicks / links.length) * 10) / 10).toLocaleString()
+                      ? (
+                          Math.round((totalClicks / links.length) * 10) / 10
+                        ).toLocaleString()
                       : 0}
                   </span>
                   회 / 링크
@@ -737,6 +755,26 @@ export default function StatsPage() {
           Synced with Cloud Firestore
         </p>
       </footer>
+
+      {/* ── 헤더 드롭다운과 연동된 프로필 수정 & 미리보기 모달 ── */}
+      <EditProfileDialog
+        open={isEditProfileOpen}
+        onOpenChange={setIsEditProfileOpen}
+        currentBio={displayUserBio}
+        currentPhotoURL={displayUserAvatar}
+        onUpdateProfile={handleUpdateProfile}
+      />
+
+      <PreviewProfileDialog
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        displayName={displayUserName}
+        email={displayUserEmail}
+        bio={displayUserBio}
+        avatarUrl={displayUserAvatar}
+        links={links}
+        onCopyLink={handleCopyPageLink}
+      />
     </div>
   );
 }

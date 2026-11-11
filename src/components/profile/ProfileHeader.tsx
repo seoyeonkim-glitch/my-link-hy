@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ArrowUpRight,
   BarChart3,
@@ -9,6 +9,7 @@ import {
   Copy,
   ExternalLink,
   Eye,
+  Home,
   Loader2,
   LogOut,
   Pencil,
@@ -23,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 export interface ProfileHeaderProps {
   displayName: string;
@@ -84,6 +86,7 @@ export function MyPageTopBar({
   onShare,
 }: Omit<ProfileHeaderProps, "bio">) {
   const router = useRouter();
+  const pathname = usePathname();
   const personalPageHref = `/${encodeURIComponent(displayName)}`;
 
   return (
@@ -172,8 +175,21 @@ export function MyPageTopBar({
 
                 <DropdownMenuSeparator />
 
-                {/* 개인별 마이페이지 이동, 프로필 수정, 미리보기 & 링크 복사 액션 */}
+                {/* 페이지 이동 및 내 페이지 관리 액션 */}
                 <DropdownMenuGroup>
+                  <DropdownMenuItem
+                    onClick={() => router.push("/")}
+                    className={cn(
+                      pathname === "/" && "bg-[#E8F3FF]/60 text-[#3182F6]"
+                    )}
+                  >
+                    <Home
+                      className="w-4 h-4 text-[#3182F6] shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span>마이페이지 홈 (/)</span>
+                  </DropdownMenuItem>
+
                   <DropdownMenuItem
                     onClick={() => router.push(personalPageHref)}
                   >
@@ -181,11 +197,14 @@ export function MyPageTopBar({
                       className="w-4 h-4 text-[#3182F6] shrink-0"
                       aria-hidden="true"
                     />
-                    <span>마이페이지 이동 (/{displayName})</span>
+                    <span>개인별 페이지 (/{displayName})</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem
                     onClick={() => router.push("/stats")}
+                    className={cn(
+                      pathname === "/stats" && "bg-[#E8F3FF]/60 text-[#3182F6]"
+                    )}
                   >
                     <BarChart3
                       className="w-4 h-4 text-[#3182F6] shrink-0"
@@ -194,29 +213,35 @@ export function MyPageTopBar({
                     <span>링크 통계 (/stats)</span>
                   </DropdownMenuItem>
 
-                  <DropdownMenuItem onClick={onEditProfile}>
-                    <Pencil
-                      className="w-4 h-4 text-[#4E5968] shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span>프로필 수정하기</span>
-                  </DropdownMenuItem>
+                  {onEditProfile && (
+                    <DropdownMenuItem onClick={onEditProfile}>
+                      <Pencil
+                        className="w-4 h-4 text-[#4E5968] shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span>프로필 수정하기</span>
+                    </DropdownMenuItem>
+                  )}
 
-                  <DropdownMenuItem onClick={onPreviewPage}>
-                    <Eye
-                      className="w-4 h-4 text-[#4E5968] shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span>내 페이지 미리보기</span>
-                  </DropdownMenuItem>
+                  {onPreviewPage && (
+                    <DropdownMenuItem onClick={onPreviewPage}>
+                      <Eye
+                        className="w-4 h-4 text-[#4E5968] shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span>내 페이지 미리보기</span>
+                    </DropdownMenuItem>
+                  )}
 
-                  <DropdownMenuItem onClick={onCopyPageLink}>
-                    <Copy
-                      className="w-4 h-4 text-[#4E5968] shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span>내 페이지 링크 복사</span>
-                  </DropdownMenuItem>
+                  {onCopyPageLink && (
+                    <DropdownMenuItem onClick={onCopyPageLink}>
+                      <Copy
+                        className="w-4 h-4 text-[#4E5968] shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span>내 페이지 링크 복사</span>
+                    </DropdownMenuItem>
+                  )}
                 </DropdownMenuGroup>
 
                 <DropdownMenuSeparator />
