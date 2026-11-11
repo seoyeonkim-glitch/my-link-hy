@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ArrowUpRight,
+  BarChart3,
   ChevronDown,
   Copy,
   ExternalLink,
@@ -181,6 +182,16 @@ export function MyPageTopBar({
                       aria-hidden="true"
                     />
                     <span>마이페이지 이동 (/{displayName})</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={() => router.push("/stats")}
+                  >
+                    <BarChart3
+                      className="w-4 h-4 text-[#3182F6] shrink-0"
+                      aria-hidden="true"
+                    />
+                    <span>링크 통계 (/stats)</span>
                   </DropdownMenuItem>
 
                   <DropdownMenuItem onClick={onEditProfile}>
