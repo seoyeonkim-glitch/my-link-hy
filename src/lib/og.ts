@@ -64,26 +64,31 @@ export function loadOgFonts(): Promise<OgFontDefinition[]> {
       readFile(
         join(process.cwd(), "src/assets/fonts/Pretendard-Bold.subset.woff")
       ),
-    ]).then(([regular, semiBold, bold]) => [
-      {
-        name: "Pretendard",
-        data: regular,
-        weight: 400,
-        style: "normal",
-      },
-      {
-        name: "Pretendard",
-        data: semiBold,
-        weight: 600,
-        style: "normal",
-      },
-      {
-        name: "Pretendard",
-        data: bold,
-        weight: 700,
-        style: "normal",
-      },
-    ]);
+    ])
+      .then(([regular, semiBold, bold]) => [
+        {
+          name: "Pretendard",
+          data: regular,
+          weight: 400 as const,
+          style: "normal" as const,
+        },
+        {
+          name: "Pretendard",
+          data: semiBold,
+          weight: 600 as const,
+          style: "normal" as const,
+        },
+        {
+          name: "Pretendard",
+          data: bold,
+          weight: 700 as const,
+          style: "normal" as const,
+        },
+      ])
+      .catch(() => {
+        cachedFontsPromise = null;
+        return [];
+      });
   }
   return cachedFontsPromise;
 }
@@ -162,13 +167,20 @@ function getStringField(
   return typeof field?.stringValue === "string" ? field.stringValue : "";
 }
 
+export interface FetchPublicProfileOgOptions {
+  includeLinks?: boolean;
+  timeoutMs?: number;
+}
+
 /**
  * Firestore REST API를 통해 공개 프로필과 링크 목록을 안전하게 조회합니다.
  * 오프라인 환경이나 존재하지 않는 사용자, 타임아웃 발생 시 null을 반환합니다.
  */
 export async function fetchPublicProfileForOg(
-  rawDisplayName: string
+  rawDisplayName: string,
+  options: FetchPublicProfileOgOptions = {}
 ): Promise<OgPublicProfile | null> {
+  const { includeLinks = true, timeoutMs = 3000 } = options;
   const displayName = decodeDisplayName(rawDisplayName);
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
   const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
@@ -199,7 +211,7 @@ export async function fetchPublicProfileForOg(
           limit: 1,
         },
       }),
-      signal: AbortSignal.timeout(3500),
+      signal: AbortSignal.timeout(timeoutMs),
       cache: "no-store",
     });
 
@@ -227,55 +239,57 @@ export async function fetchPublicProfileForOg(
 
     let links: OgPublicLink[] = [];
 
-    try {
-      const linksRes = await fetch(
-        `${baseUrl}/users/${encodeURIComponent(uid)}:runQuery${keyParam}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            structuredQuery: {
-              from: [{ collectionId: "links" }],
-              orderBy: [
-                { field: { fieldPath: "createdAt" }, direction: "DESCENDING" },
-              ],
-              limit: 20,
-            },
-          }),
-          signal: AbortSignal.timeout(3500),
-          cache: "no-store",
+    if (includeLinks) {
+      try {
+        const linksRes = await fetch(
+          `${baseUrl}/users/${encodeURIComponent(uid)}:runQuery${keyParam}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              structuredQuery: {
+                from: [{ collectionId: "links" }],
+                orderBy: [
+                  { field: { fieldPath: "createdAt" }, direction: "DESCENDING" },
+                ],
+                limit: 20,
+              },
+            }),
+            signal: AbortSignal.timeout(timeoutMs),
+            cache: "no-store",
+          }
+        );
+
+        if (linksRes.ok) {
+          const linkRows = (await linksRes.json()) as FirestoreRunQueryRow[];
+          links = linkRows
+            .filter((row) => row.document?.fields)
+            .map((row) => {
+              const doc = row.document!;
+              const fields = doc.fields!;
+              const rawIcon = getStringField(fields, "icon");
+              const validIcon: LinkIconType | undefined =
+                rawIcon === "chart" ||
+                rawIcon === "file" ||
+                rawIcon === "mail" ||
+                rawIcon === "web" ||
+                rawIcon === "github"
+                  ? rawIcon
+                  : undefined;
+
+              return {
+                id: doc.name?.split("/").pop() ?? "",
+                title: getStringField(fields, "title"),
+                url: getStringField(fields, "url"),
+                description: getStringField(fields, "description"),
+                icon: validIcon,
+              };
+            })
+            .filter((item) => Boolean(item.title || item.url));
         }
-      );
-
-      if (linksRes.ok) {
-        const linkRows = (await linksRes.json()) as FirestoreRunQueryRow[];
-        links = linkRows
-          .filter((row) => row.document?.fields)
-          .map((row) => {
-            const doc = row.document!;
-            const fields = doc.fields!;
-            const rawIcon = getStringField(fields, "icon");
-            const validIcon: LinkIconType | undefined =
-              rawIcon === "chart" ||
-              rawIcon === "file" ||
-              rawIcon === "mail" ||
-              rawIcon === "web" ||
-              rawIcon === "github"
-                ? rawIcon
-                : undefined;
-
-            return {
-              id: doc.name?.split("/").pop() ?? "",
-              title: getStringField(fields, "title"),
-              url: getStringField(fields, "url"),
-              description: getStringField(fields, "description"),
-              icon: validIcon,
-            };
-          })
-          .filter((item) => Boolean(item.title || item.url));
+      } catch {
+        links = [];
       }
-    } catch {
-      links = [];
     }
 
     return {
@@ -333,12 +347,38 @@ export async function fetchAvatarDataUri(
     }
 
     const arrayBuffer = await res.arrayBuffer();
-    if (arrayBuffer.byteLength === 0 || arrayBuffer.byteLength > 2 * 1024 * 1024) {
+    if (arrayBuffer.byteLength < 12 || arrayBuffer.byteLength > 2 * 1024 * 1024) {
+      return null;
+    }
+
+    const bytes = new Uint8Array(arrayBuffer);
+    const isPng =
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47;
+    const isJpeg =
+      bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    const isGif =
+      bytes[0] === 0x47 &&
+      bytes[1] === 0x49 &&
+      bytes[2] === 0x46 &&
+      bytes[3] === 0x38;
+
+    const detectedMime = isPng
+      ? "image/png"
+      : isJpeg
+        ? "image/jpeg"
+        : isGif
+          ? "image/gif"
+          : null;
+
+    if (!detectedMime) {
       return null;
     }
 
     const base64 = Buffer.from(arrayBuffer).toString("base64");
-    return `data:${normalizedMime};base64,${base64}`;
+    return `data:${detectedMime};base64,${base64}`;
   } catch {
     return null;
   }

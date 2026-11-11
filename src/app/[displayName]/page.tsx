@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Loader2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { decodeDisplayName, fetchPublicProfileForOg } from "@/lib/og";
@@ -14,7 +15,10 @@ export async function generateMetadata({
 }: PageProps): Promise<Metadata> {
   const { displayName: rawDisplayName } = await params;
   const decodedHandle = decodeDisplayName(rawDisplayName);
-  const profile = await fetchPublicProfileForOg(decodedHandle);
+  const profile = await fetchPublicProfileForOg(decodedHandle, {
+    includeLinks: false,
+    timeoutMs: 1800,
+  });
 
   const resolvedName = profile?.displayName || decodedHandle || "프로필";
   const resolvedBio =
@@ -56,10 +60,24 @@ function PublicProfileFallback() {
   );
 }
 
+/**
+ * Next.js 16 Cache Components 환경에서 동적 메타데이터(generateMetadata)가
+ * 런타임 요청임을 명시해 프리렌더 차단 에러를 방지하는 마커 컴포넌트입니다.
+ */
+async function DynamicMetadataConnection() {
+  await connection();
+  return null;
+}
+
 export default function UserPublicProfilePage() {
   return (
-    <Suspense fallback={<PublicProfileFallback />}>
-      <PublicProfileClient />
-    </Suspense>
+    <>
+      <Suspense fallback={<PublicProfileFallback />}>
+        <PublicProfileClient />
+      </Suspense>
+      <Suspense>
+        <DynamicMetadataConnection />
+      </Suspense>
+    </>
   );
 }
